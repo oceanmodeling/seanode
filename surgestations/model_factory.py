@@ -3,8 +3,8 @@
 
 
 import sys
-from request_options import ModelOptions
-from models.stofs_2d_glo import STOFS2DGloTaskCreator
+from surgestations.request_options import ModelOptions
+from surgestations.models.stofs_2d_glo import STOFS2DGloTaskCreator
 
 
 def get_model(model_name):

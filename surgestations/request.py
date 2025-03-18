@@ -2,9 +2,10 @@
 """
 
 
-from data_store_factory import get_data_store
-from model_factory import get_model
 import pandas as pd
+import numpy as np
+from surgestations.data_store_factory import get_data_store
+from surgestations.model_factory import get_model
 
 
 class SurgeModelRequest:
@@ -20,6 +21,7 @@ class SurgeModelRequest:
         end_date,
         forecast_type,
         geometry,
+        output_datum,
         data_store
     ) -> None:
         """
@@ -31,6 +33,7 @@ class SurgeModelRequest:
         self.end_date = end_date
         self.forecast_type = forecast_type
         self.geometry = geometry
+        self.output_datum = output_datum
         self.data_store_name = data_store
         self.model = get_model(self.model_name)
         self.data_store = get_data_store(self.data_store_name)
@@ -49,8 +52,30 @@ class SurgeModelRequest:
         print(f'Running {len(tasks)} AnalysisTasks for station data request.')
         df_list = []
         for t in tasks:
-            df_list.append(t.run(self.data_store))
-        df_out = pd.concat(df_list)
+            df_list.append(t.run(self.data_store, self.output_datum))
+        df_out = self._concat_and_update(df_list)
         return df_out
+
+    def _concat_and_update(self, df_list):
+        """
+        """
+        result = df_list[0]
+
+        if len(df_list) > 1:
+            for df in df_list[1:]:
+                
+                not_indexed = df.index[[ind not in result.index for ind in df.index]]
+                new_cols = [col for col in df.columns if col not in result.columns]
+                    
+                # Concatenate new indices or new columns if needed.
+                if any(not_indexed):
+                    result = result.reindex(result.index.append(not_indexed))
+                if any(new_cols):
+                    result[new_cols] = np.nan
+
+                # Overwrite NaNs in output dataframe.
+                result.update(df, overwrite=False)
+                
+        return result
 
     

@@ -3,14 +3,14 @@
 
 
 import sys
-from request_options import DataStoreOptions
-import data_stores
+from surgestations.request_options import DataStoreOptions
+from surgestations.data_stores import AWSDataStore
 
 
 def get_data_store(store_name):
     """
     """
     if store_name == DataStoreOptions.AWS:
-        return data_stores.AWSDataStore()
+        return AWSDataStore()
     else:
         sys.exit(f'data store {store_name} not recognized.')

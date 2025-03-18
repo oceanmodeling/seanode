@@ -1,0 +1,18 @@
+bottleneck
+cfgrib
+cftime
+coastalmodeling_vdatum @ git+ssh://git@github.com/oceanmodeling/coastalmodeling-vdatum
+dask
+fsspec
+h5netcdf
+iris
+netcdf4
+numbagg
+numpy
+pandas
+pydap
+s3fs
+scipy
+shapely
+xarray
+zarr

@@ -6,10 +6,10 @@
 from typing import List, Tuple
 import datetime
 # This package
-from analysis_task import AnalysisTask
-from models.model_task_creator import ModelTaskCreator
-from request_options import FileGeometry
-from field_source import FieldSource
+from surgestations.analysis_task import AnalysisTask
+from surgestations.models.model_task_creator import ModelTaskCreator
+from surgestations.request_options import FileGeometry, ForecastType
+from surgestations.field_source import FieldSource
 
 
 class STOFS2DGloTaskCreator(ModelTaskCreator):
@@ -28,13 +28,13 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
             'last_run': None,
             'field_sources':[
                 FieldSource('cwl', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'cwl_bias_corrected', 'varname_file':'zeta', 'datum':'MSL'}]),
+                            [{'varname_out':'cwl_bias_corrected', 'varname_file':'zeta', 'datum':'LMSL'}]),
                 FieldSource('cwl.noanomaly', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'MSL'}]),
+                            [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}]),
                 FieldSource('htp', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'MSL'}]),
+                            [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'LMSL'}]),
                 FieldSource('swl', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'swl', 'varname_file':'zeta', 'datum':'MSL'}]),
+                            [{'varname_out':'swl', 'varname_file':'zeta', 'datum':'LMSL'}]),
                 FieldSource('cwl.vel', 'nc', FileGeometry.POINTS,
                             [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
                              {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}])
@@ -80,7 +80,7 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
             self.get_versions_by_date(start_date, end_date):
             
             # Get date(s)
-            if forecast_type == 'forecast':
+            if forecast_type == ForecastType.FORECAST:
                 # Just a single date for forecast, but make it into a list.
                 init_dates = [self.get_init_time_containing(version_start)]
                 time_slices = [None]

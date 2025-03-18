@@ -1,4 +1,6 @@
 """
+This might eventually change to be subclassed as 
+PointsAnalysisTask and MeshAnalysisTask.
 """
 
 
@@ -8,8 +10,9 @@ from typing import List, Iterable
 import xarray
 import pandas
 import numpy
+from coastalmodeling_vdatum import vdatum
 # This package
-from data_stores import DataStore
+from surgestations.data_stores import DataStore
 
 
 class AnalysisTask:
@@ -45,26 +48,46 @@ class AnalysisTask:
         file_var_list.append('y')
         file_var_list.append('station_name')
         
-        ds_sub = ds[file_var_list].sel(
-            time=slice(numpy.datetime64(self.timeslice[0]), 
-                       numpy.datetime64(self.timeslice[1]))
-        )
-        # This might change if we subclass to 
+        ds_sub = ds[file_var_list]
+        if self.timeslice is not None:
+            ds_sub = ds_sub.sel(
+                time=slice(numpy.datetime64(self.timeslice[0]), 
+                           numpy.datetime64(self.timeslice[1]))
+            )
+            
+        # TODO: This might change if we subclass to 
         # PointsAnalysisTask and MeshAnalysisTask.
-        df = extract_stations_by_nos_id(ds_sub, self.stations)
+        df = extract_stations_by_nos_id(ds_sub.load(), self.stations)
         return df
 
-    def postprocess(self):
+    def postprocess(self, output_datum: str) -> None:
         """
         """
-        pass
+        # Rename columns.
+        col_name_mapper = {vdict['varname_file']:vdict['varname_out'] for vdict in self.vars}
+        self.dataframe = self.dataframe.rename(columns=col_name_mapper)
+        
+        # Datum conversion.
+        if output_datum is not None:
+            for vdict in self.vars:
+                if vdict['datum'] is not None:
+                    _, _, z_conv = vdatum.convert(
+                        vdict['datum'].lower(), output_datum.lower(), 
+                        self.dataframe['y'].values, 
+                        self.dataframe['x'].values, 
+                        self.dataframe[vdict['varname_out']].values,
+                        online=True, epoch=None
+                    )
+                    self.dataframe[vdict['varname_out']] = z_conv
+        
+        return
 
-    def run(self, store: DataStore) -> pandas.DataFrame:
+    def run(self, store: DataStore, output_datum: str) -> pandas.DataFrame:
         """
         """
-        with self.open_dataset(store).load() as ds:
+        with self.open_dataset(store) as ds:
             self.dataframe = self.get_subset(ds)
-        # self.postprocess()
+        self.postprocess(output_datum)
         return self.dataframe
 
 
