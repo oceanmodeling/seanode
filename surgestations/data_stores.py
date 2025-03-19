@@ -28,7 +28,8 @@ class AWSDataStore(DataStore):
     def open_file(self, fullpath, format="nc"):
         if format == "nc":
             url = f"s3://{fullpath}"
-            ds = xarray.open_dataset(self.filesystem.open(url, 'rb'))
+            ds = xarray.open_dataset(self.filesystem.open(url, 'rb'), 
+                                     drop_variables=['nvel'])
             return ds 
         else:
             print(f'File format {format} not supported.')
