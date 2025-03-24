@@ -52,6 +52,8 @@ class MeshAnalysisTask(AnalysisTask):
             numpy.column_stack((ds.x.data,
                              ds.y.data))
         )
+
+        # TODO: Think about NaN handling.
         
         # Get 3 nearest neighbors for interpolation.
         dists, inds = tree.query(
@@ -86,6 +88,29 @@ def calc_inv_dist_wts(dists, exponent=1):
         ~numpy.any(dists == 0.0, axis=1, keepdims=True) / (dists**exponent)
     )
     return wts / numpy.sum(wts, axis=1, keepdims=True)
+
+
+def get_nearest_inds_dists(ds_mesh, df_stations,
+                           n_nearest=10,
+                           ds_x_var='x', ds_y_var='y',
+                           df_x_var='longitude', df_y_var='latitude'):
+    """
+    """
+    tree = scipy.spatial.cKDTree(
+        numpy.column_stack((ds_mesh[ds_x_var].data,
+                            ds_mesh[ds_y_var].data))
+    )
+    dists, inds = tree.query(
+        tuple(zip(df_stations[df_x_var], df_stations[df_y_var])), 
+        k=n_nearest
+    )
+    # Make sure that outputs are 2-dimensional (station, k), 
+    # even if some dimensions are length 1.
+    if n_nearest == 1:
+        dists  = np.expand_dims(dists, axis=1)
+        inds  = np.expand_dims(inds, axis=1)
+    return xarray.DataArray(inds, dims=["station", "k"]), \
+        xarray.DataArray(dists, dims=["station", "k"])
 
 
             
