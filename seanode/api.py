@@ -2,8 +2,8 @@
 """
 
 
-from surgestations import request_options
-from surgestations.request import SurgeModelRequest
+from seanode import request_options
+from seanode.request import SurgeModelRequest
 import pandas
 
 

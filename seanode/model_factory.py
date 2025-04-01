@@ -3,8 +3,8 @@
 
 
 import sys
-from surgestations.request_options import ModelOptions
-from surgestations.models.stofs_2d_glo import STOFS2DGloTaskCreator
+from seanode.request_options import ModelOptions
+from seanode.models.stofs_2d_glo import STOFS2DGloTaskCreator
 
 
 def get_model(model_name):

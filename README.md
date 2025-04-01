@@ -41,6 +41,6 @@ The package is not currently set up as a formal python project, so it needs to b
 import os
 import sys
 sys.path.append(os.path.expanduser(<path_you_cloned_surge-stations_to>))
-from surgestations.api import get_surge_model_at_stations
+from seanode.api import get_surge_model_at_stations
 ```
 Note that this assumes your working environment also contains at least the same dependencies as listed in `requirements.txt`.

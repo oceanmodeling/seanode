@@ -7,9 +7,9 @@ from typing import List, Tuple
 import datetime
 import sys
 # This package
-from surgestations.analysis_task import AnalysisTask
-from surgestations.request_options import FileGeometry
-from surgestations.field_source import FieldSource
+from seanode.analysis_task import AnalysisTask
+from seanode.request_options import FileGeometry
+from seanode.field_source import FieldSource
 
 
 class ModelTaskCreator:

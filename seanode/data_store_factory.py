@@ -3,8 +3,8 @@
 
 
 import sys
-from surgestations.request_options import DataStoreOptions
-from surgestations.data_stores import AWSDataStore
+from seanode.request_options import DataStoreOptions
+from seanode.data_stores import AWSDataStore
 
 
 def get_data_store(store_name):

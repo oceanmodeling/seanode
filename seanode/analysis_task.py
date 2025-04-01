@@ -12,7 +12,7 @@ import pandas
 import numpy
 from coastalmodeling_vdatum import vdatum
 # This package
-from surgestations.data_stores import DataStore
+from seanode.data_stores import DataStore
 
 
 class AnalysisTask:
