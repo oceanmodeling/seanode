@@ -81,16 +81,15 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
             
             # Get date(s)
             if forecast_type == ForecastType.FORECAST:
-                # Just a single date for forecast, but make it into a list.
-                init_dates = [self.get_init_time_containing(version_start)]
-                time_slices = [None]
+                # Just a single date for forecast, but formed as a list.
+                init_dates, time_slices = self.get_init_time_forecast(
+                    version_start
+                )
             else:
                 # A list of dates for nowcast
-                init_dates = self.get_init_time_range(version_start, version_end)
-                time_slices = [
-                    (idt - datetime.timedelta(hours=self.nowcast_period), idt) 
-                    for idt in init_dates
-                ]
+                init_dates, time_slices = self.get_init_times_nowcast(
+                    version_start, version_end
+                )
         
             # Get FieldSources
             fs_list = []
