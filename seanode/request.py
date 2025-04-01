@@ -4,8 +4,8 @@
 
 import pandas as pd
 import numpy as np
-from surgestations.data_store_factory import get_data_store
-from surgestations.model_factory import get_model
+from seanode.data_store_factory import get_data_store
+from seanode.model_factory import get_model
 
 
 class SurgeModelRequest:

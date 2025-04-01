@@ -6,10 +6,10 @@
 from typing import List, Tuple
 import datetime
 # This package
-from surgestations.analysis_task import AnalysisTask
-from surgestations.models.model_task_creator import ModelTaskCreator
-from surgestations.request_options import FileGeometry, ForecastType
-from surgestations.field_source import FieldSource
+from seanode.analysis_task import AnalysisTask
+from seanode.models.model_task_creator import ModelTaskCreator
+from seanode.request_options import FileGeometry, ForecastType
+from seanode.field_source import FieldSource
 
 
 class STOFS2DGloTaskCreator(ModelTaskCreator):

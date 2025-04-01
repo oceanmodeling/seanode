@@ -1,6 +1,6 @@
 import datetime
 import pandas as pd
-from surgestations.api import get_surge_model_at_stations
+from seanode.api import get_surge_model_at_stations
 
 
 df_out = get_surge_model_at_stations(

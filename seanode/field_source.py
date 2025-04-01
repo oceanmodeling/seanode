@@ -4,7 +4,7 @@
 
 from dataclasses import dataclass
 from typing import List
-from surgestations.request_options import FileGeometry
+from seanode.request_options import FileGeometry
 
 
 @dataclass(frozen=True)
