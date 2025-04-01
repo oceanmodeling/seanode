@@ -15,13 +15,13 @@ mamba activate py312
 ```
 ### Clone repository
 ```
-git clone https://github.com:JackReevesEyre-NOAA/surge-stations.git
+git clone https://github.com/oceanmodeling/seanode.git
 # or
-git clone git@github.com:JackReevesEyre-NOAA/surge-stations.git 
+git clone git@github.com:oceanmodeling/seanode.git 
 ```
 ### Install dependencies
 ```
-cd surge-stations
+cd seanode
 python -m venv .venv
 source /.venv/bin/activate
 pip install -r requirements.txt
@@ -40,7 +40,7 @@ The package is not currently set up as a formal python project, so it needs to b
 ```
 import os
 import sys
-sys.path.append(os.path.expanduser(<path_you_cloned_surge-stations_to>))
+sys.path.append(os.path.expanduser(<path_you_cloned_seanode_to>))
 from seanode.api import get_surge_model_at_stations
 ```
 Note that this assumes your working environment also contains at least the same dependencies as listed in `requirements.txt`.
