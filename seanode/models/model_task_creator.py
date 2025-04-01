@@ -83,16 +83,18 @@ class ModelTaskCreator:
             sys.exit(f'warning: no FieldSource available for variable {var} in {geometry} files.')
         else:
             return result
-
-    def get_init_time_containing(
+            
+    def get_init_time_forecast(
         self,
         start_date: datetime.datetime
-    ) -> datetime.datetime:
+    ) -> Tuple[List[datetime.datetime], 
+               List[Tuple[datetime.datetime, datetime.datetime]]]:
         """Get the initialization datetime for latest forecast containing start_date.
     
         Note that the returned initialization datetime is equal or earlier than
         start_date, so the start_date occurs in the forecast period, not the
-        now cast period of the model run. 
+        nowcast period of the model run. The returned time slice is formed
+        such that the nowcast period is excluded.
     
         Parameters
         ----------
@@ -101,9 +103,11 @@ class ModelTaskCreator:
     
         Returns
         -------
-        datetime
+        datetime (as a single value in list)
             The latest/last forecast initialization time that 
             contains the specified start time. 
+        time slice (as a single object in list)
+            The period to retrieve for the initialization time.
     
         """
         # Get cycle hours as full datetimes.
@@ -120,20 +124,24 @@ class ModelTaskCreator:
         # last cycle from the day before. Otherwise, get the latest cycle 
         # which does contain start_date.
         if not any(contains_start_date):
-            return max(cycle_dates) - datetime.timedelta(days=1)
+            init_date =  max(cycle_dates) - datetime.timedelta(days=1)
         else:
-            return max([dt for (dt, b) in zip(cycle_dates, contains_start_date) if b])
+            init_date =  max([dt for (dt, b) 
+                              in zip(cycle_dates, contains_start_date) if b])
+        return [init_date], [(init_date, None)]
 
-    def get_init_time_range(
+    def get_init_times_nowcast(
             self,
             start_date: datetime.datetime,
             end_date: datetime.datetime
-    ) -> List[datetime.datetime]:
-        """Get list of initialization times covering a given period.
+    ) -> Tuple[List[datetime.datetime], 
+               List[Tuple[datetime.datetime, datetime.datetime]]]:
+        """Get list of initialization times whose nowcast covers a given period.
     
-        This method errs on the conservative side, to try and ensure that the
-        nowcasts of the returned initialization times cover the entire
-        period.
+        This method assumes that files contain nowcast timesteps in the interval
+            (init_time - nowcast_period, init_time]
+        E.g., 12:06 - 18:00 for a points file from model run initialized at 18:00,
+        or 13:00 - 18:00 for a fields file from model run initialized at 18:00.
     
         Parameters
         ----------
@@ -142,35 +150,40 @@ class ModelTaskCreator:
         end_date
             The last day for which initialization times are retrieved,
             though note that one more cycle beyond this day is retrieved.
-        cycles
-            The times (hour in range 0 to 23) of daily forecast cycles.
     
         Returns
         -------
-        List of datetimes
-            One per cycle per day between start_date and end_date 
-            (inclusive) plus the first cycle of an extra day.
+        List of initialization datetimes
+            One per cycle to ensure the nowcast period covers the time 
+            between start_date and end_date.
+        List of time slices
+            The period of nowcast to retrieve for each initialization.
+            One for each value in the list of initialization datetimes.
     
         """
         result = []
+        slice_result = []
+        
         dd = start_date.date()
-        
-        while dd <= end_date.date():
+        while dd <= end_date.date() + datetime.timedelta(days=1):
             for cc in self.cycles:
-                result.append(
-                    datetime.datetime(dd.year,
-                                      dd.month,
-                                      dd.day,
-                                      cc)
+                nowcast_start = (
+                    datetime.datetime(dd.year, dd.month, dd.day, cc)
+                    - datetime.timedelta(hours=self.nowcast_period)
                 )
+                nowcast_end = (
+                    datetime.datetime(dd.year, dd.month, dd.day, cc)
+                )
+                if ((nowcast_end >= start_date) & (nowcast_start < end_date)):
+                    result.append(
+                        datetime.datetime(dd.year,
+                                          dd.month,
+                                          dd.day,
+                                          cc)
+                    )
+                    slice_result.append(
+                        (max(nowcast_start, start_date),
+                         min(nowcast_end, end_date))
+                    )
             dd = dd + datetime.timedelta(days=1)
-        
-        # Add one more init time from the next day, to make
-        # sure the nowcasts cover the entire period.
-        extra_day = end_date + datetime.timedelta(days=1)
-        result.append(datetime.datetime(extra_day.year,
-                                        extra_day.month,
-                                        extra_day.day,
-                                        min(self.cycles)))
-    
-        return result
+        return result, slice_result
