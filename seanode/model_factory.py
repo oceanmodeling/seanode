@@ -5,6 +5,7 @@
 import sys
 from seanode.request_options import ModelOptions
 from seanode.models.stofs_2d_glo import STOFS2DGloTaskCreator
+from seanode.models.stofs_3d_atl import STOFS3DAtlTaskCreator
 
 
 def get_model(model_name):
