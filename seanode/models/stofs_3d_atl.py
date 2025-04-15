@@ -6,7 +6,7 @@
 from typing import List, Tuple
 import datetime
 # This package
-from seanode.analysis_task import AnalysisTask
+from seanode.analysis_task import AnalysisTask, STOFS3DAtlAnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
 from seanode.request_options import FileGeometry, ForecastType
 from seanode.field_source import FieldSource
@@ -99,10 +99,13 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
                     task_vars = [var_dict for var_dict in fs.variables 
                                  if var_dict['varname_out'] in request_variables]
                     result.append(
-                        AnalysisTask(filename, 
-                                     task_vars, 
-                                     time_slices[idt], 
-                                     stations)
+                        STOFS3DAtlAnalysisTask(
+                            filename, 
+                            task_vars, 
+                            time_slices[idt], 
+                            stations,
+                            (version_name in ['v2.1'])
+                        )
                     )
         return result
     
