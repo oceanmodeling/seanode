@@ -91,6 +91,55 @@ class AnalysisTask:
         return self.dataframe
 
 
+class STOFS3DAtlAnalysisTask(AnalysisTask):
+    """
+    """
+
+    def __init__(
+        self,
+        filename: str,
+        vars: List[dict],
+        timeslice: tuple | None,
+        stations: pandas.DataFrame,
+        switch_xy: bool = False
+    ) -> None:
+        super().__init__(filename, vars, timeslice, stations)
+        self.switch_xy = switch_xy
+    
+    def open_dataset(self, store: DataStore) -> xarray.Dataset:
+        """Open this task's dataset from given store.
+
+        This overrides the parent class method in order to switch the
+        x and y variables, which have been misnamed (with a few exceptions).
+        
+        """
+        print(f'opening file {self.filename}')
+        ds = store.open_file(self.filename)
+
+        if self.switch_xy:
+            print('Switching x and y in STOFS3DAtlAnalysisTask')
+            ds = ds.rename({'x':'actual_latitude', 'y':'actual_longitude'})
+            ds = ds.rename({'actual_latitude':'y', 'actual_longitude':'x'})
+            # Need to switch a few back, cause they were the right way round
+            # to begin with....
+            for st in [
+                'TRDF1 SOUS41 8721604 FL Trident Pier, Port Canaver',
+                'LCLL1 SOUS42 8767816 LA Lake Charles',
+                'LUIT2 SOUS42 8771972 TX San Luis Pass'
+            ]:
+                obs_name_in_model = [
+                    st in nm.decode('utf-8') 
+                    for nm in ds.station_name.data
+                ] 
+                temp_lat = ds.x.data[obs_name_in_model] 
+                temp_lon = ds.y.data[obs_name_in_model]
+                ds.x.data[obs_name_in_model] = temp_lon
+                ds.y.data[obs_name_in_model] = temp_lat
+        
+        return ds
+    
+
+
 def extract_stations_by_nos_id(
         ds: xarray.Dataset, 
         station_id_list: Iterable
