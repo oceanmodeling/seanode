@@ -2,9 +2,10 @@
 """
 
 
+import sys
+import pandas
 from seanode import request_options
 from seanode.request import SurgeModelRequest
-import pandas
 
 
 def get_surge_model_at_stations(
@@ -25,6 +26,8 @@ def get_surge_model_at_stations(
         req_model = request_options.ModelOptions.STOFS_2D_GLO
     elif model in ['STOFS_3D_ATL']:
         req_model = request_options.ModelOptions.STOFS_3D_ATL
+    elif model in ['GFS']:
+        req_model = request_options.ModelOptions.GFS
     else:
         model_opts = [m.name for m in list(request_options.ModelOptions)]
         sys.exit(f'model {model} not recognized. Try one of {model_opts}.')

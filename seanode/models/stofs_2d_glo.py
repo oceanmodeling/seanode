@@ -28,16 +28,21 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
             'last_run': None,
             'field_sources':[
                 FieldSource('cwl', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'cwl_bias_corrected', 'varname_file':'zeta', 'datum':'LMSL'}]),
+                            [{'varname_out':'cwl_bias_corrected', 'varname_file':'zeta', 'datum':'LMSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
                 FieldSource('cwl.noanomaly', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}]),
+                            [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
                 FieldSource('htp', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'LMSL'}]),
+                            [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'LMSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
                 FieldSource('swl', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'swl', 'varname_file':'zeta', 'datum':'LMSL'}]),
+                            [{'varname_out':'swl', 'varname_file':'zeta', 'datum':'LMSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
                 FieldSource('cwl.vel', 'nc', FileGeometry.POINTS,
                             [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
-                             {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}])
+                             {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'})
             ]
         },
         'v2.0':{
@@ -45,16 +50,21 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
             'last_run': datetime.datetime(2024, 5, 14, 6, 0),
             'field_sources':[
                 FieldSource('cwl', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'cwl_bias_corrected', 'varname_file':'zeta', 'datum':'MSL'}]),
+                            [{'varname_out':'cwl_bias_corrected', 'varname_file':'zeta', 'datum':'MSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
                 FieldSource('cwl.noanomaly', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'MSL'}]),
+                            [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'MSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
                 FieldSource('htp', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'MSL'}]),
+                            [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'MSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
                 FieldSource('swl', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'swl', 'varname_file':'zeta', 'datum':'MSL'}]),
+                            [{'varname_out':'swl', 'varname_file':'zeta', 'datum':'MSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
                 FieldSource('cwl.vel', 'nc', FileGeometry.POINTS,
                             [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
-                             {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}])
+                             {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'})
             ]
         }
     }
@@ -108,6 +118,7 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
                                  if var_dict['varname_out'] in request_variables]
                     result.append(
                         AnalysisTask(filename, 
+                                     fs.coords,
                                      task_vars, 
                                      time_slices[idt], 
                                      stations)

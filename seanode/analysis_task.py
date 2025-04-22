@@ -22,14 +22,16 @@ class AnalysisTask:
     def __init__(
         self,
         filename: str,
-        vars: List[dict],
+        coords: dict,
+        varlist: List[dict],
         timeslice: tuple | None,
         stations: pandas.DataFrame
     ) -> None:
         """
         """
         self.filename = filename
-        self.vars = vars
+        self.coords = coords
+        self.varlist = varlist
         self.timeslice = timeslice
         self.stations = stations
 
@@ -42,19 +44,20 @@ class AnalysisTask:
     def get_subset(self, ds:xarray.Dataset) -> pandas.DataFrame:
         """
         """
-        # TODO: find better way to add ancillary variables to the subset.
-        file_var_list = [var_dict['varname_file'] for var_dict in self.vars]
-        file_var_list.append('x')
-        file_var_list.append('y')
-        file_var_list.append('station_name')
-        
-        ds_sub = ds[file_var_list]
+        # Rename coordinates.
+        ds_sub = ds.rename({v:k for k,v in self.coords.items()})
+        # Get list of variables and coordinates to keep.
+        file_var_list = [var_dict['varname_file'] for var_dict in self.varlist] + \
+            list(self.coords.keys())
+        # Subset variables.
+        ds_sub = ds_sub[file_var_list]
+        # Subset time.
         if self.timeslice is not None:
             ds_sub = ds_sub.sel(
                 time=slice(numpy.datetime64(self.timeslice[0]), 
                            numpy.datetime64(self.timeslice[1]))
             )
-            
+        # Subset stations. 
         # TODO: This might change if we subclass to 
         # PointsAnalysisTask and MeshAnalysisTask.
         df = extract_stations_by_nos_id(ds_sub.load(), self.stations)
@@ -64,17 +67,18 @@ class AnalysisTask:
         """
         """
         # Rename columns.
-        col_name_mapper = {vdict['varname_file']:vdict['varname_out'] for vdict in self.vars}
+        col_name_mapper = {vdict['varname_file']:vdict['varname_out'] 
+                           for vdict in self.varlist}
         self.dataframe = self.dataframe.rename(columns=col_name_mapper)
         
         # Datum conversion.
         if output_datum is not None:
-            for vdict in self.vars:
+            for vdict in self.varlist:
                 if vdict['datum'] is not None:
                     _, _, z_conv = vdatum.convert(
                         vdict['datum'].lower(), output_datum.lower(), 
-                        self.dataframe['y'].values, 
-                        self.dataframe['x'].values, 
+                        self.dataframe['latitude'].values, 
+                        self.dataframe['longitude'].values, 
                         self.dataframe[vdict['varname_out']].values,
                         online=True, epoch=None
                     )
@@ -98,12 +102,13 @@ class STOFS3DAtlAnalysisTask(AnalysisTask):
     def __init__(
         self,
         filename: str,
-        vars: List[dict],
+        coords: dict,
+        varlist: List[dict],
         timeslice: tuple | None,
         stations: pandas.DataFrame,
         switch_xy: bool = False
     ) -> None:
-        super().__init__(filename, vars, timeslice, stations)
+        super().__init__(filename, coords, varlist, timeslice, stations)
         self.switch_xy = switch_xy
     
     def open_dataset(self, store: DataStore) -> xarray.Dataset:
