@@ -6,6 +6,7 @@ import sys
 from seanode.request_options import ModelOptions
 from seanode.models.stofs_2d_glo import STOFS2DGloTaskCreator
 from seanode.models.stofs_3d_atl import STOFS3DAtlTaskCreator
+from seanode.models.gfs import GFSTaskCreator
 
 
 def get_model(model_name):
@@ -15,5 +16,7 @@ def get_model(model_name):
         return STOFS2DGloTaskCreator()
     elif model_name == ModelOptions.STOFS_3D_ATL:
         return STOFS3DAtlTaskCreator()
+    elif model_name == ModelOptions.GFS:
+        return GFSTaskCreator()
     else:
         sys.exit(f'model_name {model_name} not recognized.')

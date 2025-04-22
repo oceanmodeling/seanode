@@ -28,12 +28,14 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
             'last_run': None,
             'field_sources':[
                 FieldSource('cwl', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'cwl', 'varname_file':'zeta', 'datum':'NAVD88'}]),
+                            [{'varname_out':'cwl', 'varname_file':'zeta', 'datum':'NAVD88'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
                 FieldSource('cwl.temp.salt.vel', 'nc', FileGeometry.POINTS,
                             [{'varname_out':'temperature', 'varname_file':'temperature', 'datum':None},
                              {'varname_out':'salinity', 'varname_file':'salinity', 'datum':None},
                              {'varname_out':'u_vel', 'varname_file':'u', 'datum':None},
-                             {'varname_out':'v_vel', 'varname_file':'v', 'datum':None}])
+                             {'varname_out':'v_vel', 'varname_file':'v', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'})
             ]
         },
         'v1.1':{
@@ -41,12 +43,14 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
             'last_run': datetime.datetime(2024, 5, 13, 12, 0),
             'field_sources':[
                 FieldSource('cwl', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'cwl', 'varname_file':'zeta', 'datum':'NAVD88'}]),
+                            [{'varname_out':'cwl', 'varname_file':'zeta', 'datum':'NAVD88'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
                 FieldSource('cwl.temp.salt.vel', 'nc', FileGeometry.POINTS,
                             [{'varname_out':'temperature', 'varname_file':'temperature', 'datum':None},
                              {'varname_out':'salinity', 'varname_file':'salinity', 'datum':None},
                              {'varname_out':'u_vel', 'varname_file':'u', 'datum':None},
-                             {'varname_out':'v_vel', 'varname_file':'v', 'datum':None}])
+                             {'varname_out':'v_vel', 'varname_file':'v', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'})
             ]
         }
     }
@@ -101,6 +105,7 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
                     result.append(
                         STOFS3DAtlAnalysisTask(
                             filename, 
+                            fs.coords,
                             task_vars, 
                             time_slices[idt], 
                             stations,

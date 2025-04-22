@@ -26,15 +26,23 @@ class FieldSource:
         {'varname_out': varname_out, 'varname_file':file_varname, 'datum':datum}
         e.g.,
         {'varname_out': 'cwl_bias_corrected', 'varname_file':'zeta', 'datum':'MSL'}
+    coords
+        dictionary mapping a file's coordinates to standard names, in the 
+        pattern {standard_name: name_in_file}
+        E.g.,
+        {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}
 
     Methods
     -------
+    get_vars()
+        Returns a list of varname_out values for all entries in variables.
     """
 
     var_group: str
     file_format: str
     file_geometry: FileGeometry
     variables: list
+    coords: dict
 
     def get_vars(self):
         """
