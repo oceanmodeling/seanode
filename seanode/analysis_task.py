@@ -4,15 +4,17 @@ PointsAnalysisTask and MeshAnalysisTask.
 """
 
 
-# External libraries
 from abc import ABC, abstractmethod
 from typing import List, Iterable
 import xarray
 import pandas
 import numpy
 from coastalmodeling_vdatum import vdatum
-# This package
 from seanode.data_stores import DataStore
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class AnalysisTask:
@@ -38,7 +40,7 @@ class AnalysisTask:
     def open_dataset(self, store: DataStore) -> xarray.Dataset:
         """
         """
-        print(f'opening file {self.filename}')
+        logger.info(f'opening file {self.filename}')
         return store.open_file(self.filename)
 
     def get_subset(self, ds:xarray.Dataset) -> pandas.DataFrame:
@@ -118,11 +120,11 @@ class STOFS3DAtlAnalysisTask(AnalysisTask):
         x and y variables, which have been misnamed (with a few exceptions).
         
         """
-        print(f'opening file {self.filename}')
+        logger.info(f'opening file {self.filename}')
         ds = store.open_file(self.filename)
 
         if self.switch_xy:
-            print('Switching x and y in STOFS3DAtlAnalysisTask')
+            logger.warning('Switching x and y in STOFS3DAtlAnalysisTask')
             ds = ds.rename({'x':'actual_latitude', 'y':'actual_longitude'})
             ds = ds.rename({'actual_latitude':'y', 'actual_longitude':'x'})
             # Need to switch a few back, cause they were the right way round
@@ -183,9 +185,9 @@ def extract_stations_by_nos_id(
 
         # Check that only one model station matchis this ID.
         if numpy.sum(obs_name_in_model) > 1:
-            print(f"Warning: more than one model station matches NOS ID {nos_id}")
+            logger.warning(f"More than one model station matches NOS ID {nos_id}")
         elif numpy.sum(obs_name_in_model) == 0:
-            print(f"Warning: no model station matches for NOS ID {nos_id}")
+            logger.warning(f"No model station matches for NOS ID {nos_id}")
         else:   
             # If available, concatenate the data with other stations.
             station_df = ds.loc[dict(station=obs_name_in_model)]\
@@ -200,7 +202,7 @@ def extract_stations_by_nos_id(
                      sort=False
                 )
             except:
-                print(f"Warning: cannot concatenate station data frame for NOS ID {nos_id}: Skipping.")
+                logger.warning(f"Cannot concatenate station data frame for NOS ID {nos_id}: Skipping.")
                 continue
 
     return result

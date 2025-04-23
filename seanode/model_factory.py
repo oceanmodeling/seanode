@@ -19,4 +19,4 @@ def get_model(model_name):
     elif model_name == ModelOptions.GFS:
         return GFSTaskCreator()
     else:
-        sys.exit(f'model_name {model_name} not recognized.')
+        raise ValueError(f'model_name {model_name} not recognized.')

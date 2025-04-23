@@ -2,10 +2,8 @@
 """
 
 
-# External libraries
 from typing import List, Tuple
 import datetime
-# This package
 from seanode.analysis_task import AnalysisTask
 from seanode.analysis_task_grid import GridAnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
