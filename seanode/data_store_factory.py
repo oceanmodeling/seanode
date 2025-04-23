@@ -13,4 +13,4 @@ def get_data_store(store_name):
     if store_name == DataStoreOptions.AWS:
         return AWSDataStore()
     else:
-        sys.exit(f'data store {store_name} not recognized.')
+        raise ValueError(f'data store {store_name} not recognized.')

@@ -6,6 +6,10 @@ import pandas as pd
 import numpy as np
 from seanode.data_store_factory import get_data_store
 from seanode.model_factory import get_model
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class SurgeModelRequest:
@@ -49,7 +53,7 @@ class SurgeModelRequest:
             self.forecast_type,
             self.geometry
         )
-        print(f'Running {len(tasks)} AnalysisTasks for station data request.')
+        logger.info(f'Running {len(tasks)} AnalysisTasks for station data request.')
         df_list = []
         for t in tasks:
             df_list.append(t.run(self.data_store, self.output_datum))

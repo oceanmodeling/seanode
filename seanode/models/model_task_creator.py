@@ -10,6 +10,10 @@ import sys
 from seanode.analysis_task import AnalysisTask
 from seanode.request_options import FileGeometry
 from seanode.field_source import FieldSource
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class ModelTaskCreator:
@@ -31,7 +35,7 @@ class ModelTaskCreator:
     def get_analysis_tasks(self) -> List[AnalysisTask]:
         """
         """
-        print('get_analysis_tasks() not implemented for generic model base class.')
+        raise NotImplementedError('get_analysis_tasks() not implemented for generic ModelTaskCreator base class.')
         return []
 
     def get_versions_by_date(
@@ -78,9 +82,9 @@ class ModelTaskCreator:
 
         # Check if exactly 1 DataSource in result
         if len(result) > 1:
-            sys.exit(f'warning: more than one FieldSource available for variable {var} in {geometry} files.')
+            logger.warning(f'More than one FieldSource available for variable {var} in {geometry} files.')
         elif len(result) == 0:
-            sys.exit(f'warning: no FieldSource available for variable {var} in {geometry} files.')
+            logger.warning(f'No FieldSource available for variable {var} in {geometry} files.')
         else:
             return result
             

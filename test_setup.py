@@ -1,6 +1,10 @@
 import datetime
 import pandas as pd
 from seanode.api import get_surge_model_at_stations
+import logging
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 df_forecast = get_surge_model_at_stations(

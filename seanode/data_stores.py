@@ -64,7 +64,7 @@ class AWSDataStore(DataStore):
             return xarray.merge([ds_wind, ds_surface])
             
         else:
-            print(f'File format {format} not supported.')
+            raise ValueError(f'File format {format} not supported.')
             return None
         
     
