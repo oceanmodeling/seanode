@@ -1,4 +1,9 @@
-"""
+"""Field source class definition, describing format/contents of a series of files.
+
+Classes
+-------
+FieldSource
+
 """
 
 
@@ -11,7 +16,11 @@ from seanode.request_options import FileGeometry
 class FieldSource:
     """Define field source object, corresponding to a series of files.
 
-    Parameters
+    Future: Maybe this is where the get_filename(...) methods should go,
+    using this kind of syntax:
+    https://stackoverflow.com/a/44757255
+
+    Attributes
     ----------
     var_group
         Description of the group of variables contained in a file,
@@ -36,6 +45,7 @@ class FieldSource:
     -------
     get_vars()
         Returns a list of varname_out values for all entries in variables.
+        
     """
 
     var_group: str
@@ -44,9 +54,8 @@ class FieldSource:
     variables: list
     coords: dict
 
-    def get_vars(self):
-        """
-        """
+    def get_vars(self) -> List[str]:
+        """Return list of output variable names available in a FieldSource."""
         return [vardict['varname_out'] for vardict in self.variables]
 
 

@@ -1,4 +1,16 @@
-"""
+"""Define options that can be used in model data requests.
+
+These are only used to define the simpler choices available
+when making a data request. More open-ended choices (e.g., dates
+and station lists/dataframes) are not pre-defined here.
+
+Classes
+-------
+FileGeometry
+ForecastType
+ModelOptions
+DataStoreOptions
+
 """
 
 

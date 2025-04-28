@@ -1,4 +1,17 @@
-"""
+"""Data storage systems on which files/FieldSources can be accessed.
+
+Classes
+-------
+DataStore
+    Abstract base class.
+AWSDataStore
+    Public/anonymous file store on AWS.
+
+Methods
+-------
+open_file
+    Available in each subclass. 
+
 """
 
 
@@ -12,7 +25,10 @@ import xarray
 
 
 class DataStore(ABC):
-    """
+    """Abstract base class for DataStores.
+
+    Do not use directly.
+    
     """
     
     @abstractmethod
@@ -21,15 +37,41 @@ class DataStore(ABC):
 
 
 class AWSDataStore(DataStore):
-    """
+    """Publicly available data store on AWS.
+
+    Attributes
+    ----------
+    None
+
+    Methods
+    -------
+    open_file(fullpath, format)
+        Opens a file (at fullpath, having a given format) from the data store.
+        
     """
 
-    filesystem = s3fs.S3FileSystem(anon=True)
+    def open_file(self, fullpath: str, format:str = "nc") -> xarray.Dataset:
+        """Opens a file and returns a dataset.
 
-    def open_file(self, fullpath, format="nc"):
-        """
+        Note grib files are read with filters applied to the vertical levels,
+        so not all variables will be returned.
+
+        Parameters
+        ----------
+        fullpath
+            Full path to a file, including the bucket and key,
+            but not including the "s3://" prependix.
+        format
+            The format of the file, e.g., "nc" or "grib2".
+
+        Returns
+        -------
+        xarray.Dataset
+            containing data in the given file.
+            
         """
         if format == "nc":
+            filesystem = s3fs.S3FileSystem(anon=True)
             url = f"s3://{fullpath}"
             ds = xarray.open_dataset(self.filesystem.open(url, 'rb'))
             return ds 

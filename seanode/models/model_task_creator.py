@@ -1,4 +1,9 @@
-"""
+"""Define base class for models.
+
+Classes
+-------
+ModelTaskCreator
+
 """
 
 
@@ -17,23 +22,57 @@ logger = logging.getLogger(__name__)
 
 
 class ModelTaskCreator:
-    """
+    """Base class for models, containing key details and data catalogure.
+
+    The class has some commonly used methods, so isn't entirely
+    abstract, but cannot create AnalysisTasks so can't be used 
+    on its own.
+
+    Attributes
+    ----------
+    cycles
+    nowcast_period
+    data_catalog
+
+    Methods
+    -------
+    get_versions_by_date
+    get_field_source
+    get_init_time_forecast
+    get_init_times_nowcast
+    
     """
 
     def __init__(
         self,
-        cycles,
-        nowcast_period,
-        data_catalog
+        cycles: Tuple[int],
+        nowcast_period: int,
+        data_catalog: dict
     ) -> None:
-        """
+        """Initialize ModelTaskCreator.
+
+        Parameters
+        ----------
+        cycles
+            Initilization times of forecast cycles, in whole hours, formatted 
+            in an arbitrary length tuple, e.g., (0,12). If the tuple is length
+            1, input it like "(1,)", not "(1)".
+        nowcast_period
+            Length of the nowcast period of a model. This is a STOFS-related
+            concept that differentiates a period of a model run before the 
+            initialization time, known as a nowcast. Where relevant, the same
+            idea can be used for other models (e.g., GFS, used to force STOFS).
+        data_catalog
+            Describes the available FieldSources of a model, broken down by
+            model version. 
+        
         """
         self.cycles = cycles
         self.nowcast_period = nowcast_period
         self.data_catalog = data_catalog
     
     def get_analysis_tasks(self) -> List[AnalysisTask]:
-        """
+        """Not implemented.
         """
         raise NotImplementedError('get_analysis_tasks() not implemented for generic ModelTaskCreator base class.')
         return []
@@ -43,7 +82,29 @@ class ModelTaskCreator:
         start_time: datetime.datetime,
         end_time: datetime.datetime
     ) -> List[Tuple[str, datetime.datetime, datetime.datetime]]:
-        """
+        """Return model version(s) a given period overlaps with.
+
+        Model versions are defined to deal with cases where the same file
+        name formats and locations are used before and after model changes,
+        for example, before and after a change in the model datum or a change
+        in the stations available in Points files.
+        
+        In case the period overlaps multiple model versions, the return
+        values include the start and end times of when the period overlaps
+        each model version separatelyl. 
+
+        Parameters
+        ----------
+        start_time
+            The start time of the period for which the version is needed.
+        end_time
+           The end time of the period for which the version is needed.
+
+        Returns
+        -------
+        List of tuples, each containing 
+        (model version, start of overlap, end of overlap).
+        
         """
         result = []
         for ver in self.data_catalog.keys():
@@ -71,7 +132,20 @@ class ModelTaskCreator:
         var: str, 
         geometry: FileGeometry
     ) -> List[FieldSource]:
-        """Returns list of field sources for given variable and geometry.
+        """Get list of field sources for given version, variable and geometry.
+
+        Parameters
+        ----------
+        version
+            The model version name/number.
+        var
+            The variable of interest.
+        geometry
+            One of FileGeometry POINTS, GRID, or MESH.
+
+        Returns
+        -------
+        List of FieldSources.
 
         """
         result = []
