@@ -1,15 +1,19 @@
-"""
+"""Factory to return a data store object.
+
+Functions
+---------
+get_data_store
+
 """
 
 
 import sys
 from seanode.request_options import DataStoreOptions
-from seanode.data_stores import AWSDataStore
+from seanode.data_stores import AWSDataStore, DataStore
 
 
-def get_data_store(store_name):
-    """
-    """
+def get_data_store(store_name: DataStoreOptions) -> DataStore:
+    """Return a DataStore object given a data store name."""
     if store_name == DataStoreOptions.AWS:
         return AWSDataStore()
     else:

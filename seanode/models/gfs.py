@@ -1,4 +1,9 @@
-"""
+"""GFS model and task creator.
+
+Classes
+-------
+GFSTaskCreator
+
 """
 
 
@@ -12,7 +17,30 @@ from seanode.field_source import FieldSource
 
 
 class GFSTaskCreator(ModelTaskCreator):
-    """
+    """GFS model and task creator.
+
+    Extends ModelTaskCreator and get_analysis_tasks, get_init_time_forecast,
+    and get_init_times_nowcast methods.
+    
+    Attributes
+    ----------
+    bucket_name
+    dir_prefix
+    file_prefix
+    geometry_mapper
+    cycles
+    nowcast_period
+    data_catalog
+
+    Methods
+    -------
+    get_versions_by_date
+    get_field_source
+    get_init_time_forecast
+    get_init_times_nowcast
+    get_analysis_tasks
+    get_filename
+    
     """
 
     bucket_name = 'noaa-gfs-bdp-pds'
@@ -36,6 +64,27 @@ class GFSTaskCreator(ModelTaskCreator):
     }
 
     def __init__(self):
+        """Initialize GFSTaskCreator.
+
+        Note that this simply initializes the parent class with the 
+        GFSTaskCreator class variables.
+
+        Parameters
+        ----------
+        cycles
+            Initilization times of forecast cycles, in whole hours, formatted 
+            in an arbitrary length tuple, e.g., (0,12). If the tuple is length
+            1, input it like "(1,)", not "(1)".
+        nowcast_period
+            Length of the nowcast period of a model. This is a STOFS-related
+            concept that differentiates a period of a model run before the 
+            initialization time, known as a nowcast. Where relevant, the same
+            idea can be used for other models (e.g., GFS, used to force STOFS).
+        data_catalog
+            Describes the available FieldSources of a model, broken down by
+            model version.
+
+        """
         super().__init__(self.cycles, self.nowcast_period, self.data_catalog)
     
     def get_analysis_tasks(
@@ -47,7 +96,30 @@ class GFSTaskCreator(ModelTaskCreator):
         forecast_type,
         geometry
     ) -> List[AnalysisTask]:
-        """
+        """Return a list of AnalysisTask objects for this model.
+
+        Parameters
+        ----------
+        request_variables
+            List of variables to retrieve (using their "varname_out"
+            values from the data_catalog).
+        stations
+            A list or other object containing information about the 
+            locations at which to retrieve data.
+        start_date
+            Start of period from which to retrieve data.
+        end_date
+            End of period from which to retrieve data. Ignored for
+            forecast_type = "forecast".
+        forecast_type
+            Whether to get nowcast or forecast data.
+        geometry
+            Type of files from which to retrieve data.
+
+        Returns
+        -------
+        List of analysis tasks for this model.
+        
         """
         result = []
         
@@ -101,7 +173,24 @@ class GFSTaskCreator(ModelTaskCreator):
             var_group: str,
             file_format: str
     ) -> str:
-        """Get filepath for forecast initialized at init_datetime."""
+        """Get filepath for forecast initialized at a specific time.
+
+        Parameters
+        ----------
+        init_datetime
+            The model run initialization time.
+        forecast_lead
+            Lead time (in whole hours) of forecast in this file.
+        var_group
+            String representing description of file contents.
+        file_format
+            File format; usually "nc" or "grib2".
+
+        Returns
+        -------
+        Full path to a single file.
+        
+        """
         yyyymmdd = init_datetime.strftime('%Y%m%d')
         hh = init_datetime.strftime('%H')
         filepath = f'{self.bucket_name}/{self.dir_prefix}.{yyyymmdd}/{hh}/atmos/{self.file_prefix}.t{hh}z.{var_group}f{forecast_lead:03d}.{file_format}'
@@ -129,8 +218,7 @@ class GFSTaskCreator(ModelTaskCreator):
         datetime (as a single value in list)
             The latest/last forecast initialization time that 
             contains the specified start time. 
-        time slice (as a single object in list)
-            The period to retrieve for the initialization time.
+        tuple of lead times (as a single value in a list)
     
         """
         # Get cycle hours as full datetimes.
