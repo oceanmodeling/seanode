@@ -7,7 +7,8 @@ GFSTaskCreator
 """
 
 
-from typing import List, Tuple
+from typing import List, Tuple, Iterable
+import pandas
 import datetime
 from seanode.analysis_task import AnalysisTask
 from seanode.analysis_task_grid import GridAnalysisTask
@@ -89,12 +90,12 @@ class GFSTaskCreator(ModelTaskCreator):
     
     def get_analysis_tasks(
         self, 
-        request_variables,
-        stations,
-        start_date,
-        end_date,
-        forecast_type,
-        geometry
+        request_variables: List[str],
+        stations: Iterable | pandas.DataFrame,
+        start_date: datetime.datetime,
+        end_date: datetime.datetime,
+        forecast_type: ForecastType,
+        geometry: FileGeometry
     ) -> List[AnalysisTask]:
         """Return a list of AnalysisTask objects for this model.
 

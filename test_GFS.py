@@ -29,8 +29,6 @@ df_forecast = get_surge_model_at_stations(
 
 print(df_forecast)
 
-import pdb; pdb.set_trace()
-
 df_nowcast = get_surge_model_at_stations(
     'GFS',
     ['u10', 'v10', 'ps'],
@@ -44,3 +42,6 @@ df_nowcast = get_surge_model_at_stations(
 )
 
 print(df_nowcast)
+
+assert df_forecast.shape == (423,9), "df_forecast should have shape (423,9)."
+assert df_nowcast.shape == (129,9), "df_nowcast should have shape (129,9)."

@@ -73,7 +73,7 @@ class AWSDataStore(DataStore):
         if format == "nc":
             filesystem = s3fs.S3FileSystem(anon=True)
             url = f"s3://{fullpath}"
-            ds = xarray.open_dataset(self.filesystem.open(url, 'rb'))
+            ds = xarray.open_dataset(filesystem.open(url, 'rb'))
             return ds 
             
         elif format in ['grib', 'grib2']:
