@@ -6,7 +6,7 @@ dimensions, each of which are 1-dimensional coordinates.
 Classes
 -------
 GridAnalysisTask
-    The subclass of AnalysisTask class, with methods for point data files.
+    The subclass of AnalysisTask class, with methods for grid data files.
     
 """
 

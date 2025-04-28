@@ -9,8 +9,9 @@ STOFS3DAtlTaskCreator
 
 
 # External libraries
-from typing import List, Tuple
+from typing import List, Tuple, Iterable
 import datetime
+import pandas
 # This package
 from seanode.analysis_task import AnalysisTask, STOFS3DAtlAnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
@@ -109,12 +110,12 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
     
     def get_analysis_tasks(
         self, 
-        request_variables,
-        stations,
-        start_date,
-        end_date,
-        forecast_type,
-        geometry
+        request_variables: List[str],
+        stations: Iterable | pandas.DataFrame,
+        start_date: datetime.datetime,
+        end_date: datetime.datetime,
+        forecast_type: ForecastType,
+        geometry: FileGeometry
     ) -> List[AnalysisTask]:
         """Return a list of AnalysisTask objects for this model.
 

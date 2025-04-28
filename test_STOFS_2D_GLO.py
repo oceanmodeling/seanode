@@ -34,3 +34,6 @@ df_nowcast = get_surge_model_at_stations(
 )
 
 print(df_nowcast)
+
+assert df_forecast.shape == (3602,6), "df_forecast should have shape (3602, 6)."
+assert df_nowcast.shape == (362, 4), "df_nowcast should have shape (362, 4)."

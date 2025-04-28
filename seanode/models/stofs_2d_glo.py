@@ -10,6 +10,7 @@ STOFS2DGloTaskCreator
 # External libraries
 from typing import List, Tuple, Iterable
 import datetime
+import pandas
 # This package
 from seanode.analysis_task import AnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
