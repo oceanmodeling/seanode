@@ -1,17 +1,7 @@
-import xarray
-import xarray as xr
-import pandas 
+import datetime
 import pandas as pd
-import scipy
-import numpy
-import numpy as np
+from seanode.api import get_surge_model_at_stations
 import logging
-from seanode.data_stores import AWSDataStore
-from seanode.analysis_task_mesh import (
-    MeshAnalysisTask, 
-    get_nearest_dists_inds, 
-    calc_inv_dist_wts
-)
 
 
 logging.basicConfig(level=logging.INFO)
@@ -25,34 +15,34 @@ df_stations = pd.DataFrame(
     }
 )
 
-store = AWSDataStore()
-
-hrrr_grid_fn = 'noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.20240515/rerun/stofs_3d_atl.t12z.hrrr.air.nc'
-hrrr_mesh_fn = 'noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.20240515/schout_adcirc_20240514.nc'
-
-
-task = MeshAnalysisTask(
-    hrrr_grid_fn,
-    {'latitude':'lat', 'longitude':'lon', 'time':'time'},
-    [{'varname_out':'ps', 'varname_file':'prmsl', 'datum':None},
-     {'varname_out':'u10', 'varname_file':'uwind', 'datum':None},
-     {'varname_out':'v10', 'varname_file':'vwind', 'datum':None}],
-    None,
+df_forecast = get_surge_model_at_stations(
+    'HRRR',
+    ['u10', 'v10', 'ps'],
     df_stations,
-    'nc'
+    datetime.datetime(2024,12,1,18,0),
+    None,
+    'forecast',
+    'mesh',
+    None,
+    'AWS'
 )
 
-result = task.run(store, None)
+print(df_forecast)
 
 
-task2 = MeshAnalysisTask(
-    hrrr_mesh_fn,
-    {'latitude':'y', 'longitude':'x', 'time':'time'},
-    [{'varname_out':'u10', 'varname_file':'uwind', 'datum':None},
-     {'varname_out':'v10', 'varname_file':'vwind', 'datum':None}],
-    None,
-    df_stations,
-    'nc'
+df_nowcast = get_surge_model_at_stations(
+    'HRRR',
+    ['u10', 'v10', 'ps'],
+    df_stations, 
+    datetime.datetime(2024,5,12,3,0),
+    datetime.datetime(2024,5,13,21,0),
+    'nowcast', 
+    'mesh', 
+    None, 
+    'AWS'
 )
 
-result2 = task2.run(store, None)
+print(df_nowcast)
+
+assert df_forecast.shape == (147,5), "df_forecast should have shape (147,5)."
+assert df_nowcast.shape == (129,5), "df_nowcast should have shape (129,5)."
