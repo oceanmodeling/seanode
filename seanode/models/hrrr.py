@@ -13,7 +13,7 @@ from typing import List, Tuple, Iterable
 import pandas
 import datetime
 from seanode.analysis_task import AnalysisTask
-from seanode.analysis_task_grid import GridAnalysisTask
+from seanode.analysis_task_mesh import MeshAnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
 from seanode.request_options import FileGeometry, ForecastType
 from seanode.field_source import FieldSource
@@ -56,12 +56,11 @@ class HRRRTaskCreator(ModelTaskCreator):
             'first_run': datetime.datetime(2021, 3, 22, 12, 0),
             'last_run': None,
             'field_sources':[
-                FieldSource('air', 'nc', FileGeometry.GRID,
+                FieldSource('air', 'nc', FileGeometry.MESH,
                             [{'varname_out':'ps', 'varname_file':'prmsl', 'datum':None},
                              {'varname_out':'u10', 'varname_file':'uwind', 'datum':None},
                              {'varname_out':'v10', 'varname_file':'vwind', 'datum':None}],
-                            {'time':'time', 
-                             'latitude':'lat','lon':'longitude'})
+                            {'time':'time','latitude':'lat','longitude':'lon'})
             ]
         }
     }
@@ -130,7 +129,7 @@ class HRRRTaskCreator(ModelTaskCreator):
         for (version_name, version_start, version_end) in \
             self.get_versions_by_date(start_date, end_date):
             
-            # Get initialization datetime(s) and list of lead times for each.
+            # Get initialization datetime(s) and time slices for each.
             if forecast_type == ForecastType.FORECAST:
                 # Just a single date for forecast, but formed as a list.
                 init_dates, time_slices = self.get_init_time_forecast(
@@ -153,19 +152,18 @@ class HRRRTaskCreator(ModelTaskCreator):
             # Create analysis tasks
             for fs in fs_list:
                 for idt, dt in enumerate(init_dates):
-                    for lt in lead_times[idt]:
-                        filename = self.get_filename(dt,
-                                                     fs.var_group, 
-                                                     fs.file_format)
-                        task_vars = [var_dict for var_dict in fs.variables 
-                                     if var_dict['varname_out'] in request_variables]
-                        result.append(
-                            GridAnalysisTask(filename, 
-                                             fs.coords,
-                                             task_vars,
-                                             time_slices[idt],
-                                             stations,
-                                             fs.file_format)
+                    filename = self.get_filename(dt,
+                                                 fs.var_group, 
+                                                 fs.file_format)
+                    task_vars = [var_dict for var_dict in fs.variables 
+                                 if var_dict['varname_out'] in request_variables]
+                    result.append(
+                        MeshAnalysisTask(filename, 
+                                         fs.coords,
+                                         task_vars,
+                                         time_slices[idt],
+                                         stations,
+                                         fs.file_format)
                         )
         return result
     
