@@ -149,7 +149,7 @@ class GridAnalysisTask(AnalysisTask):
                 lat_lon = [f'{la:.5f}N {lo:.5f}E' for (la, lo) in 
                            zip(self.stations.latitude, self.stations.longitude)]
                 df_stations.insert(0,'station', lat_lon)
-                ds_stations = df_stations.set_index('lat_lon').to_xarray()
+                ds_stations = df_stations.set_index('station').to_xarray()
         df = ds_sub.sel(
             latitude=ds_stations.latitude,
             longitude=ds_stations.longitude,
