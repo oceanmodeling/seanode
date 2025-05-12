@@ -30,6 +30,7 @@ store = AWSDataStore()
 hrrr_grid_fn = 'noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.20240515/rerun/stofs_3d_atl.t12z.hrrr.air.nc'
 hrrr_mesh_fn = 'noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.20240515/schout_adcirc_20240514.nc'
 
+
 task = MeshAnalysisTask(
     hrrr_grid_fn,
     {'latitude':'lat', 'longitude':'lon', 'time':'time'},
@@ -43,3 +44,15 @@ task = MeshAnalysisTask(
 
 result = task.run(store, None)
 
+
+task2 = MeshAnalysisTask(
+    hrrr_mesh_fn,
+    {'latitude':'y', 'longitude':'x', 'time':'time'},
+    [{'varname_out':'u10', 'varname_file':'uwind', 'datum':None},
+     {'varname_out':'v10', 'varname_file':'vwind', 'datum':None}],
+    None,
+    df_stations,
+    'nc'
+)
+
+result2 = task2.run(store, None)

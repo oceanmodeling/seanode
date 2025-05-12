@@ -117,8 +117,12 @@ class MeshAnalysisTask(AnalysisTask):
             standardized, but the data variable names have not.
             
         """
-        # Rename coordinates.
+        # Rename coordinates and convert lat/lon to regular variables.
         ds_sub = ds.rename({v:k for k,v in self.coords.items()})
+        try:
+            ds_sub = ds_sub.reset_coords(['latitude', 'longitude'])
+        except:
+            logging.warn('Cannot convert latitude and longitude to data variables.')
         
         # Make sure longitude is in range [-180.0, 180.0]
         ds_sub['longitude'] = seanode.utils.switch_lon_lims(
