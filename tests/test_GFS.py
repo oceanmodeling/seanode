@@ -1,3 +1,6 @@
+import pathlib  
+import sys
+sys.path.append(str(pathlib.Path(__file__).parent.parent.absolute()))
 import datetime
 import pandas as pd
 from seanode.api import get_surge_model_at_stations
