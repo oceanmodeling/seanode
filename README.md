@@ -1,6 +1,22 @@
 Extract STOFS and related model data at station locations..
 
 # Installation
+## Standard usage
+For usage in your own python software, seanode can be installed with pip:
+```
+pip install git+ssh://git@github.com:oceanmodeling/seanode.git
+```
+Or add to a `requirements.txt` file:
+```
+<other packages>
+...
+seanode @  git+ssh://git@github.com:oceanmodeling/seanode.git
+```
+which can be used to create a virtual env:
+```
+pip install -r requirements.txt
+```
+## Development 
 ### Set up conda environment
 This package has so far been developed and tested using `python 3.12`. If needed, use conda to get this:
 ```
@@ -23,7 +39,7 @@ git clone git@github.com:oceanmodeling/seanode.git
 ```
 cd seanode
 python -m venv .venv
-source /.venv/bin/activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 ### Cleanup
@@ -36,11 +52,8 @@ mamba deactivate
 
 # Usage
 
-The package is not currently set up as a formal python project, so it needs to be added to your python search path manually (after cloning, above). This can be done by adding the following in whatever other project you want to use it from:
+The main function to use is `get_surge_model_at_stations(...)`:
 ```
-import os
-import sys
-sys.path.append(os.path.expanduser(<path_you_cloned_seanode_to>))
 from seanode.api import get_surge_model_at_stations
 ```
-Note that this assumes your working environment also contains at least the same dependencies as listed in `requirements.txt`.
+Examples of usage are given in `example_points_query.ipynb` and the scripts in directory `tests`.
