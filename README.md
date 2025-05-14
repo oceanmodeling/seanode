@@ -4,13 +4,13 @@ Extract STOFS and related model data at station locations..
 ## Standard usage
 For usage in your own python software, seanode can be installed with pip:
 ```
-pip install git+ssh://git@github.com:oceanmodeling/seanode.git
+pip install git+ssh://git@github.com/oceanmodeling/seanode.git
 ```
 Or add to a `requirements.txt` file:
 ```
 <other packages>
 ...
-seanode @  git+ssh://git@github.com:oceanmodeling/seanode.git
+seanode @  git+ssh://git@github.com/oceanmodeling/seanode.git
 ```
 which can be used to create a virtual env:
 ```
