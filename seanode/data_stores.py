@@ -83,8 +83,7 @@ class AWSDataStore(DataStore):
             # TODO: work out how to handle differently if working on AWS cluster vs. another cluster or laptop.
             file = fsspec.open_local(
                 'filecache::s3://' + fullpath, 
-                s3={'anon': True}, 
-                filecache={'cache_storage':'/tmp/files'}
+                s3={'anon': True}
             )
             # Right now these filters are hard-coded, but if 
             # different variables are needed, we could pass a  
