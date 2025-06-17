@@ -15,6 +15,7 @@ from seanode.analysis_task_grid import GridAnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
 from seanode.request_options import FileGeometry, ForecastType
 from seanode.field_source import FieldSource
+from seanode.kerchunker import kerchunk_grib
 
 
 class GFSTaskCreator(ModelTaskCreator):
@@ -54,7 +55,7 @@ class GFSTaskCreator(ModelTaskCreator):
             'first_run': datetime.datetime(2021, 3, 22, 12, 0),
             'last_run': None,
             'field_sources':[
-                FieldSource('sfluxgrb', 'grib2', FileGeometry.GRID,
+                FieldSource('sfluxgrb', 'kerchunk', FileGeometry.GRID,
                             [{'varname_out':'ps', 'varname_file':'sp', 'datum':None},
                              {'varname_out':'u10', 'varname_file':'u10', 'datum':None},
                              {'varname_out':'v10', 'varname_file':'v10', 'datum':None}],
@@ -150,21 +151,29 @@ class GFSTaskCreator(ModelTaskCreator):
             
             # Create analysis tasks
             for fs in fs_list:
+                ref_files = []
                 for idt, dt in enumerate(init_dates):
                     for lt in lead_times[idt]:
+                        # Get name of the grib file.
+                        # Note we hard-code the "grib2" suffix so it
+                        # doesn't look for "kerchunk" file suffixs.
                         filename = self.get_filename(dt, lt, 
                                                      fs.var_group, 
-                                                     fs.file_format)
-                        task_vars = [var_dict for var_dict in fs.variables 
-                                     if var_dict['varname_out'] in request_variables]
-                        result.append(
-                            GridAnalysisTask(filename, 
-                                             fs.coords,
-                                             task_vars,
-                                             None,
-                                             stations,
-                                             fs.file_format)
-                        )
+                                                     'grib2')
+                        # Get reference files for this grib file.
+                        ltrefs = kerchunk_grib(filename)
+                        # Add to overall list for this task.
+                        ref_files = ref_files + ltrefs
+                task_vars = [var_dict for var_dict in fs.variables 
+                             if var_dict['varname_out'] in request_variables]
+                result.append(
+                    GridAnalysisTask(ref_files, 
+                                     fs.coords,
+                                     task_vars,
+                                     None,
+                                     stations,
+                                     fs.file_format)
+                )
         return result
     
     def get_filename(

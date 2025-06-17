@@ -52,7 +52,7 @@ class GridAnalysisTask(AnalysisTask):
 
     def __init__(
         self,
-        filename: str,
+        filename: str | list,
         coords: dict,
         varlist: List[dict],
         timeslice: tuple | None,
