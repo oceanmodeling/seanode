@@ -23,6 +23,7 @@ import s3fs
 import fsspec
 import xarray
 import ujson
+import zarr
 from kerchunk.combine import MultiZarrToZarr
 
 
@@ -124,9 +125,10 @@ class AWSDataStore(DataStore):
             # Open dataset as zarr object using fsspec reference file system and xarray
             fs = fsspec.filesystem("reference", fo=mzz_trans, 
                                    remote_protocol='s3', 
-                                   remote_options={'anon':True})
-            mapper = fs.get_mapper("")
-            ds = xarray.open_dataset(mapper, engine="zarr", 
+                                   remote_options={'anon':True},
+                                   target_options={})
+            store = zarr.storage.FsspecStore(fs)
+            ds = xarray.open_dataset(store, engine="zarr", 
                                      backend_kwargs=dict(consolidated=False), 
                                      chunks={'valid_time':1}, 
                                      decode_timedelta=True)
