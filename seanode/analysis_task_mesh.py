@@ -148,13 +148,13 @@ class MeshAnalysisTask(AnalysisTask):
 
         # Try to add station coordinate if possible.
         if 'station' in self.stations:
-            logger.info('Setting variable station as station dimension in MeshAnalysisTask station subsetter.')
+            logger.debug('Setting variable station as station dimension in MeshAnalysisTask station subsetter.')
             dists_inds.coords['station'] = self.stations['station']
         elif 'station_name' in self.stations:
-            logger.info('Setting variable station_name as station dimension in MeshAnalysisTask station subsetter.')
+            logger.debug('Setting variable station_name as station dimension in MeshAnalysisTask station subsetter.')
             dists_inds.coords['station'] = self.stations['station_name']
         else:
-            logger.info('Creating lat_lon coordinate to use as station dimension in MeshAnalysisTask station subsetter.')
+            logger.debug('Creating lat_lon coordinate to use as station dimension in MeshAnalysisTask station subsetter.')
             lat_lon = [f'{la:.5f}N {lo:.5f}E' for (la, lo) in 
                        zip(self.stations.latitude, self.stations.longitude)]
             dists_inds.coords['station'] = lat_lon
