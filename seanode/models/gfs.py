@@ -10,6 +10,8 @@ GFSTaskCreator
 from typing import List, Tuple, Iterable
 import pandas
 import datetime
+import dask
+import itertools
 from seanode.analysis_task import AnalysisTask
 from seanode.analysis_task_grid import GridAnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
@@ -161,13 +163,14 @@ class GFSTaskCreator(ModelTaskCreator):
                                                      fs.var_group, 
                                                      'grib2')
                         # Get reference files for this grib file.
-                        ltrefs = kerchunk_grib(filename)
+                        ltrefs = dask.delayed(kerchunk_grib)(filename)
                         # Add to overall list for this task.
-                        ref_files = ref_files + ltrefs
+                        ref_files.append(ltrefs)
+                ref_files = dask.compute(*ref_files)
                 task_vars = [var_dict for var_dict in fs.variables 
                              if var_dict['varname_out'] in request_variables]
                 result.append(
-                    GridAnalysisTask(ref_files, 
+                    GridAnalysisTask(list(itertools.chain(*ref_files)), 
                                      fs.coords,
                                      task_vars,
                                      None,
