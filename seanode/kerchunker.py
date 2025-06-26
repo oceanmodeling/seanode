@@ -8,6 +8,7 @@ import datetime as dt
 import pandas as pd
 import pathlib
 import fsspec
+import s3fs
 import ujson
 from kerchunk.grib2 import scan_grib
 import dask.bag
@@ -36,10 +37,18 @@ def kerchunk_grib(grib_filename):
     # Get file name root for creating json file names.
     # Just the filename with out the ".grib2" suffix.
     json_name_root = pathlib.Path(grib_filename).stem
-
+    
     # Create variable filter (hardcoded for now).
     var_filter = {'cfVarName': ['u10', 'v10', 'sp']}
-    storage_opts = {"anon": True}
+    # Storage options to pass to scan_grib, which in turn passes them to
+    # the GRIB files' underlying file system.
+    # The skip_intance_cache=True part makes sure that the GRIB file 
+    # connections are closed properly. If this doesn't happen, it can
+    # cause issues when then trying to read those same files later on.
+    # An alternative is to call
+    #     s3fs.S3FileSystem.clear_instance_cache()
+    # at the end of the routine.
+    storage_opts = {'anon': True, 'skip_instance_cache': True}
 
     # Check if there are existing reference files.
     # We could do some fancy checks for variable names here, but 

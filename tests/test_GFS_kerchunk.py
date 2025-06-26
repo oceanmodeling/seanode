@@ -21,13 +21,12 @@ df_stations = pd.DataFrame(
     }
 )
 
-
 df_nowcast = get_surge_model_at_stations(
     'GFS',
     ['u10', 'v10', 'ps'],
     df_stations, 
-    datetime.datetime(2024,5,15,6,0),
-    datetime.datetime(2024,5,15,8,0),
+    datetime.datetime(2025,1,15,0,0),
+    datetime.datetime(2025,1,15,2,0),
     'nowcast', 
     'grid', 
     None, 
