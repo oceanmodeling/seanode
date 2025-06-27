@@ -119,14 +119,17 @@ class AWSDataStore(DataStore):
                 concat_dims=['valid_time'],
                 identical_dims=['latitude', 'longitude', 
                                 'heightAboveGround', 'surface', 
-                                'step']
+                                'step'],
+                remote_options={'skip_instance_cache': True},
+                target_options={'skip_instance_cache': True}
             )
             mzz_trans = mzz.translate()
             # Open dataset as zarr object using fsspec reference file system and xarray
             fs = fsspec.filesystem("reference", fo=mzz_trans, 
                                    remote_protocol='s3', 
-                                   remote_options={'anon':True},
-                                   target_options={})
+                                   remote_options={'anon':True,
+                                                   'skip_instance_cache': True},
+                                   target_options={'skip_instance_cache': True})
             store = zarr.storage.FsspecStore(fs)
             ds = xarray.open_dataset(store, engine="zarr", 
                                      backend_kwargs=dict(consolidated=False), 
