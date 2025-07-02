@@ -129,7 +129,10 @@ class SurgeModelRequest:
         logger.info(f'Running {len(tasks)} AnalysisTasks for station data request.')
         df_list = []
         for t in tasks:
-            df_list.append(t.run(self.data_store, self.output_datum))
+            try:
+                df_list.append(t.run(self.data_store, self.output_datum))
+            except:
+                logger.warning(f'Cannot complete analysis task on file {t.filename}.')
         df_out = self._concat_and_update(df_list)
         return df_out
 
