@@ -15,4 +15,10 @@ s3fs
 scipy
 shapely
 xarray
-zarr
+zarr <3.0
+kerchunk 
+ujson
+virtualizarr
+h5py
+fastparquet
+pyarrow

@@ -52,7 +52,7 @@ class GridAnalysisTask(AnalysisTask):
 
     def __init__(
         self,
-        filename: str,
+        filename: str | list,
         coords: dict,
         varlist: List[dict],
         timeslice: tuple | None,
@@ -87,7 +87,11 @@ class GridAnalysisTask(AnalysisTask):
 
     def open_dataset(self, store: DataStore) -> xarray.Dataset:
         """Open this task's dataset from given data store."""
-        logger.info(f'opening file {self.filename}')
+        if isinstance(self.filename, list):
+            logger.info(f'opening file list with {len(self.filename)} items:')
+            logger.info(f'[{self.filename[0]}  ...  {self.filename[-1]}]')
+        else:
+            logger.info(f'opening file {self.filename}')
         return store.open_file(self.filename, format=self.file_format)
 
     def get_subset(self, ds:xarray.Dataset) -> pandas.DataFrame:
