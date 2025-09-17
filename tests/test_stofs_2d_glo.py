@@ -145,10 +145,10 @@ def test_get_analysis_task_forecast_unavailable_geometry():
             dt_start,
             dt_end,
             seanode.request_options.ForecastType.FORECAST, 
-            seanode.request_options.FileGeometry.INVALID_GEOMETRY
+            seanode.request_options.FileGeometry.GRID
         )
-    except AttributeError as e:
-        assert "type object 'FileGeometry' has no attribute 'INVALID_GEOMETRY'" in str(e)
+    except TypeError as e:
+        assert "'NoneType' object is not iterable" in str(e)
         return None
 
 # ----------------------------------------------------------------

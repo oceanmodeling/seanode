@@ -12,6 +12,7 @@ import pandas
 import datetime
 import dask
 import itertools
+import math
 from seanode.analysis_task import AnalysisTask
 from seanode.analysis_task_grid import GridAnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
@@ -310,8 +311,8 @@ class GFSTaskCreator(ModelTaskCreator):
                     lead_result.append(
                         tuple(
                             range(
-                                6 - min(6,int((nowcast_end - start_date)/datetime.timedelta(hours=1))),
-                                1 + min(5,int((end_date - nowcast_start)/datetime.timedelta(hours=1)))
+                                6 - min(6,math.ceil((nowcast_end - start_date)/datetime.timedelta(hours=1))),
+                                1 + min(5,math.ceil((end_date - nowcast_start)/datetime.timedelta(hours=1)))
                             )
                         )
                     )
