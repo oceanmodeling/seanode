@@ -158,17 +158,6 @@ def test_get_analysis_task_forecast_unavailable_geometry():
         assert "'NoneType' object is not iterable" in str(e)
         return None
 
-# ----------------------------------------------------------------
-# Filename generation.
-def test_get_filename():
-    fn = gfs.get_filename(
-            dt_start, 
-            123, 
-            'sfluxgrb', 
-            'grib2'
-        )
-    assert fn == 'noaa-gfs-bdp-pds/gfs.20241201/12/atmos/gfs.t12z.sfluxgrbf123.grib2'
-
 
 # ----------------------------------------------------------------
 # Forecast initialization time determination.
@@ -242,7 +231,6 @@ if __name__ == '__main__':
     test_get_analysis_task_forecast_unavailable_variable()
     test_get_analysis_task_forecast_future_start()
     test_get_analysis_task_forecast_unavailable_geometry()
-    test_get_filename()
     test_get_init_time_forecast()
     test_get_init_times_nowcast()
     print("All tests passed.")

@@ -140,24 +140,11 @@ def test_get_analysis_task_forecast_unavailable_geometry():
 
 
 # ----------------------------------------------------------------
-# Filename generation.
-def test_get_filename():
-    fn = hrrr.get_filename(
-            dt_start, 
-            'air', 
-            'nc'
-        )
-    assert fn == 'noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.20241201/rerun/stofs_3d_atl.t12z.hrrr.air.nc'
-    return None
-
-
-# ----------------------------------------------------------------
 if __name__ == '__main__':
     test_get_analysis_task_nowcast_current_version()
     test_get_analysis_task_forecast_current_version()
     test_get_analysis_task_forecast_unavailable_variable()
     test_get_analysis_task_forecast_future_start()
     test_get_analysis_task_forecast_unavailable_geometry()
-    test_get_filename()
     print("All tests passed.")
 

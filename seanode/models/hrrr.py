@@ -27,10 +27,6 @@ class HRRRTaskCreator(ModelTaskCreator):
     
     Attributes
     ----------
-    bucket_name
-    dir_prefix
-    file_prefix
-    geometry_mapper
     cycles
     nowcast_period
     data_catalog
@@ -42,13 +38,9 @@ class HRRRTaskCreator(ModelTaskCreator):
     get_init_time_forecast
     get_init_times_nowcast
     get_analysis_tasks
-    get_filename
     
     """
 
-    bucket_name = 'noaa-nos-stofs3d-pds/STOFS-3D-Atl'
-    dir_prefix = 'stofs_3d_atl'
-    file_prefix = 'stofs_3d_atl'
     cycles = (12,)
     nowcast_period = 24
     data_catalog = {
@@ -56,11 +48,12 @@ class HRRRTaskCreator(ModelTaskCreator):
             'first_run': datetime.datetime(2021, 3, 22, 12, 0),
             'last_run': None,
             'field_sources':[
-                FieldSource('air', 'nc', FileGeometry.MESH,
+                FieldSource('noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.{yyyymmdd}/rerun/stofs_3d_atl.t{hh}z.hrrr.air.nc',
                             [{'varname_out':'ps', 'varname_file':'prmsl', 'datum':None},
                              {'varname_out':'u10', 'varname_file':'uwind', 'datum':None},
                              {'varname_out':'v10', 'varname_file':'vwind', 'datum':None}],
-                            {'time':'time','latitude':'lat','longitude':'lon'})
+                            {'time':'time','latitude':'lat','longitude':'lon'},
+                            FileGeometry.MESH, 'nc')
             ]
         }
     }
@@ -152,9 +145,7 @@ class HRRRTaskCreator(ModelTaskCreator):
             # Create analysis tasks
             for fs in fs_list:
                 for idt, dt in enumerate(init_dates):
-                    filename = self.get_filename(dt,
-                                                 fs.var_group, 
-                                                 fs.file_format)
+                    filename = fs.get_filename(dt)
                     task_vars = [var_dict for var_dict in fs.variables 
                                  if var_dict['varname_out'] in request_variables]
                     result.append(
@@ -167,32 +158,6 @@ class HRRRTaskCreator(ModelTaskCreator):
                         )
         return result
     
-    def get_filename(
-            self,
-            init_datetime: datetime.datetime,
-            var_group: str,
-            file_format: str
-    ) -> str:
-        """Get filepath for forecast initialized at a specific time.
-
-        Parameters
-        ----------
-        init_datetime
-            The model run initialization time.
-        var_group
-            String representing description of file contents.
-        file_format
-            File format; usually "nc" or "grib2".
-
-        Returns
-        -------
-        Full path to a single file.
-        
-        """
-        yyyymmdd = init_datetime.strftime('%Y%m%d')
-        hh = init_datetime.strftime('%H')
-        filepath = f'{self.bucket_name}/{self.dir_prefix}.{yyyymmdd}/rerun/{self.file_prefix}.t{hh}z.hrrr.{var_group}.{file_format}'
-        return filepath
 
 
         

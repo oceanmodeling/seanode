@@ -29,10 +29,6 @@ class GFSTaskCreator(ModelTaskCreator):
     
     Attributes
     ----------
-    bucket_name
-    dir_prefix
-    file_prefix
-    geometry_mapper
     cycles
     nowcast_period
     data_catalog
@@ -44,13 +40,9 @@ class GFSTaskCreator(ModelTaskCreator):
     get_init_time_forecast
     get_init_times_nowcast
     get_analysis_tasks
-    get_filename
     
     """
 
-    bucket_name = 'noaa-gfs-bdp-pds'
-    dir_prefix = 'gfs'
-    file_prefix = 'gfs'
     cycles = (0, 6, 12, 18)
     nowcast_period = 6
     data_catalog = {
@@ -58,12 +50,13 @@ class GFSTaskCreator(ModelTaskCreator):
             'first_run': datetime.datetime(2021, 3, 22, 12, 0),
             'last_run': None,
             'field_sources':[
-                FieldSource('sfluxgrb', 'kerchunk', FileGeometry.GRID,
+                FieldSource('noaa-gfs-bdp-pds/gfs.{yyyymmdd}/{hh}/atmos/gfs.t{hh}z.sfluxgrbf{forecast_lead:03d}.grib2',
                             [{'varname_out':'ps', 'varname_file':'sp', 'datum':None},
                              {'varname_out':'u10', 'varname_file':'u10', 'datum':None},
                              {'varname_out':'v10', 'varname_file':'v10', 'datum':None}],
                             {'time':'valid_time', 'init_time':'time', 
-                             'latitude':'latitude','longitude':'longitude'})
+                             'latitude':'latitude','longitude':'longitude'},
+                             FileGeometry.GRID, 'kerchunk'),
             ]
         }
     }
@@ -160,9 +153,7 @@ class GFSTaskCreator(ModelTaskCreator):
                         # Get name of the grib file.
                         # Note we hard-code the "grib2" suffix so it
                         # doesn't look for "kerchunk" file suffixs.
-                        filename = self.get_filename(dt, lt, 
-                                                     fs.var_group, 
-                                                     'grib2')
+                        filename = fs.get_filename(dt, {'forecast_lead':lt})
                         # Get reference files for this grib file.
                         ltrefs = dask.delayed(kerchunk_grib)(filename)
                         # Add to overall list for this task.
@@ -179,36 +170,6 @@ class GFSTaskCreator(ModelTaskCreator):
                                      fs.file_format)
                 )
         return result
-    
-    def get_filename(
-            self,
-            init_datetime: datetime.datetime,
-            forecast_lead: int,
-            var_group: str,
-            file_format: str
-    ) -> str:
-        """Get filepath for forecast initialized at a specific time.
-
-        Parameters
-        ----------
-        init_datetime
-            The model run initialization time.
-        forecast_lead
-            Lead time (in whole hours) of forecast in this file.
-        var_group
-            String representing description of file contents.
-        file_format
-            File format; usually "nc" or "grib2".
-
-        Returns
-        -------
-        Full path to a single file.
-        
-        """
-        yyyymmdd = init_datetime.strftime('%Y%m%d')
-        hh = init_datetime.strftime('%H')
-        filepath = f'{self.bucket_name}/{self.dir_prefix}.{yyyymmdd}/{hh}/atmos/{self.file_prefix}.t{hh}z.{var_group}f{forecast_lead:03d}.{file_format}'
-        return filepath
 
     def get_init_time_forecast(
         self,

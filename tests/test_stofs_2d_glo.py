@@ -151,16 +151,6 @@ def test_get_analysis_task_forecast_unavailable_geometry():
         assert "'NoneType' object is not iterable" in str(e)
         return None
 
-# ----------------------------------------------------------------
-# Filename generation.
-def test_get_filename():
-    fn = s2d.get_filename(
-            dt_start, 
-            seanode.request_options.FileGeometry.POINTS, 
-            'cwl', 'nc'
-        )
-    assert fn == 'noaa-gestofs-pds/stofs_2d_glo.20241201/stofs_2d_glo.t12z.points.cwl.nc'
-
 
 if __name__ == '__main__':
     test_get_analysis_task_nowcast_current_version()
@@ -169,6 +159,5 @@ if __name__ == '__main__':
     test_get_analysis_task_forecast_v2p0_unavailable_variable()
     test_get_analysis_task_forecast_future_start()
     test_get_analysis_task_forecast_unavailable_geometry()
-    test_get_filename()
     print("All tests passed.")
 

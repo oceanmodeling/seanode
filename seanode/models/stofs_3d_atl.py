@@ -26,10 +26,6 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
     
     Attributes
     ----------
-    bucket_name
-    dir_prefix
-    file_prefix
-    geometry_mapper
     cycles
     nowcast_period
     data_catalog
@@ -41,14 +37,9 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
     get_init_time_forecast
     get_init_times_nowcast
     get_analysis_tasks
-    get_filename
     
     """
 
-    bucket_name = 'noaa-nos-stofs3d-pds/STOFS-3D-Atl'
-    dir_prefix = 'stofs_3d_atl'
-    file_prefix = 'stofs_3d_atl'
-    geometry_mapper = {'points':'points', 'mesh':'fields'}
     cycles = (12,)
     nowcast_period = 24
     data_catalog = {
@@ -56,30 +47,34 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
             'first_run': datetime.datetime(2024, 5, 14, 12, 0),
             'last_run': None,
             'field_sources':[
-                FieldSource('cwl', 'nc', FileGeometry.POINTS,
+                FieldSource('noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.{yyyymmdd}/stofs_3d_atl.t{hh}z.points.cwl.nc', 
                             [{'varname_out':'cwl', 'varname_file':'zeta', 'datum':'NAVD88'}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
-                FieldSource('cwl.temp.salt.vel', 'nc', FileGeometry.POINTS,
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.{yyyymmdd}/stofs_3d_atl.t{hh}z.points.cwl.temp.salt.vel.nc',
                             [{'varname_out':'temperature', 'varname_file':'temperature', 'datum':None},
                              {'varname_out':'salinity', 'varname_file':'salinity', 'datum':None},
                              {'varname_out':'u_vel', 'varname_file':'u', 'datum':None},
                              {'varname_out':'v_vel', 'varname_file':'v', 'datum':None}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'})
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc')
             ]
         },
         'v1.1':{
             'first_run':datetime.datetime(2023, 1, 12, 12, 0),
             'last_run': datetime.datetime(2024, 5, 13, 12, 0),
             'field_sources':[
-                FieldSource('cwl', 'nc', FileGeometry.POINTS,
+                FieldSource('noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.{yyyymmdd}/stofs_3d_atl.t{hh}z.points.cwl.nc',
                             [{'varname_out':'cwl', 'varname_file':'zeta', 'datum':'NAVD88'}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
-                FieldSource('cwl.temp.salt.vel', 'nc', FileGeometry.POINTS,
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.{yyyymmdd}/stofs_3d_atl.t{hh}z.points.cwl.temp.salt.vel.nc',
                             [{'varname_out':'temperature', 'varname_file':'temperature', 'datum':None},
                              {'varname_out':'salinity', 'varname_file':'salinity', 'datum':None},
                              {'varname_out':'u_vel', 'varname_file':'u', 'datum':None},
                              {'varname_out':'v_vel', 'varname_file':'v', 'datum':None}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'})
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc')
             ]
         }
     }
@@ -171,8 +166,7 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
             # Create analysis tasks
             for fs in fs_list:
                 for idt, dt in enumerate(init_dates):
-                    filename = self.get_filename(dt, fs.file_geometry, 
-                                                 fs.var_group, fs.file_format)
+                    filename = fs.get_filename(dt)
                     task_vars = [var_dict for var_dict in fs.variables 
                                  if var_dict['varname_out'] in request_variables]
                     result.append(
@@ -186,37 +180,6 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
                         )
                     )
         return result
-    
-    def get_filename(
-            self,
-            init_datetime: datetime.datetime,
-            geometry: FileGeometry,
-            var_group: str,
-            file_format: str
-    ) -> str:
-        """Get filepath for forecast initialized at a specific time.
-
-        Parameters
-        ----------
-        init_datetime
-            The model run initialization time.
-        geometry
-            Type of files from which to retrieve data.
-        var_group
-            String representing description of file contents.
-        file_format
-            File format; usually "nc" or "grib2".
-
-        Returns
-        -------
-        Full path to a single file.
-        
-        """
-        geom_name = self.geometry_mapper[geometry.value]
-        yyyymmdd = init_datetime.strftime('%Y%m%d')
-        hh = init_datetime.strftime('%H')
-        filepath = f'{self.bucket_name}/{self.dir_prefix}.{yyyymmdd}/{self.file_prefix}.t{hh}z.{geom_name}.{var_group}.{file_format}'
-        return filepath
 
 
         
