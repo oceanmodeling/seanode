@@ -13,6 +13,7 @@ import datetime
 import pandas
 # This package
 from seanode.analysis_task import AnalysisTask
+from seanode.analysis_task_mesh import MeshAnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
 from seanode.request_options import FileGeometry, ForecastType
 from seanode.field_source import FieldSource
@@ -66,7 +67,24 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
                             [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
                              {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}],
                             {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
-                            FileGeometry.POINTS, 'nc')
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.nc',
+                            [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.htp.nc',
+                            [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'LMSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.swl.nc',
+                            [{'varname_out':'swl', 'varname_file':'zeta', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.vel.nc',
+                            [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
+                             {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc')
             ]
         },
         'v2.0':{
@@ -89,7 +107,24 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
                             [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
                              {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}],
                             {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
-                            FileGeometry.POINTS, 'nc')
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.nc',
+                            [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.htp.nc',
+                            [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'LMSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.swl.nc',
+                            [{'varname_out':'swl', 'varname_file':'zeta', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.vel.nc',
+                            [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
+                             {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc')
             ]
         }
     }
@@ -184,13 +219,23 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
                     filename = fs.get_filename(dt)
                     task_vars = [var_dict for var_dict in fs.variables 
                                  if var_dict['varname_out'] in request_variables]
-                    result.append(
-                        AnalysisTask(filename, 
-                                     fs.coords,
-                                     task_vars, 
-                                     time_slices[idt], 
-                                     stations)
-                    )
+                    if geometry == FileGeometry.MESH:
+                        result.append(
+                            MeshAnalysisTask(filename, 
+                                             fs.coords,
+                                             task_vars, 
+                                             time_slices[idt], 
+                                             stations,
+                                             fs.file_format)
+                        )
+                    else:
+                        result.append(
+                            AnalysisTask(filename, 
+                                         fs.coords,
+                                         task_vars, 
+                                         time_slices[idt], 
+                                         stations)
+                        )
         return result
 
 
