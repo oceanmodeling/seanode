@@ -12,11 +12,15 @@ HRRRTaskCreator
 from typing import List, Tuple, Iterable
 import pandas
 import datetime
+import logging
 from seanode.analysis_task import AnalysisTask
 from seanode.analysis_task_mesh import MeshAnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
 from seanode.request_options import FileGeometry, ForecastType
 from seanode.field_source import FieldSource
+
+
+logger = logging.getLogger(__name__)
 
 
 class HRRRTaskCreator(ModelTaskCreator):
@@ -138,24 +142,30 @@ class HRRRTaskCreator(ModelTaskCreator):
             fs_list = []
             for var in request_variables:
                 fs_new = self.get_field_source(version_name, var, geometry)
-                for fs in fs_new:
-                    if fs not in fs_list:
-                        fs_list.append(fs)
+                if fs_new:
+                    for fs in fs_new:
+                        if fs not in fs_list:
+                            fs_list.append(fs)
+                else:
+                    logger.warning(
+                        f'No {geometry} FieldSource found for variable "{var}".'
+                    )
             
             # Create analysis tasks
-            for fs in fs_list:
-                for idt, dt in enumerate(init_dates):
-                    filename = fs.get_filename(dt)
-                    task_vars = [var_dict for var_dict in fs.variables 
-                                 if var_dict['varname_out'] in request_variables]
-                    result.append(
-                        MeshAnalysisTask(filename, 
-                                         fs.coords,
-                                         task_vars,
-                                         time_slices[idt],
-                                         stations,
-                                         fs.file_format)
-                        )
+            if fs_list:
+                for fs in fs_list:
+                    for idt, dt in enumerate(init_dates):
+                        filename = fs.get_filename(dt)
+                        task_vars = [var_dict for var_dict in fs.variables 
+                                    if var_dict['varname_out'] in request_variables]
+                        result.append(
+                            MeshAnalysisTask(filename, 
+                                            fs.coords,
+                                            task_vars,
+                                            time_slices[idt],
+                                            stations,
+                                            fs.file_format)
+                            )
         return result
     
 

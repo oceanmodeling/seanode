@@ -13,12 +13,16 @@ import datetime
 import dask
 import itertools
 import math
+import logging
 from seanode.analysis_task import AnalysisTask
 from seanode.analysis_task_grid import GridAnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
 from seanode.request_options import FileGeometry, ForecastType
 from seanode.field_source import FieldSource
 from seanode.kerchunker import kerchunk_grib
+
+
+logger = logging.getLogger(__name__)
 
 
 class GFSTaskCreator(ModelTaskCreator):
@@ -141,34 +145,40 @@ class GFSTaskCreator(ModelTaskCreator):
             fs_list = []
             for var in request_variables:
                 fs_new = self.get_field_source(version_name, var, geometry)
-                for fs in fs_new:
-                    if fs not in fs_list:
-                        fs_list.append(fs)
+                if fs_new:
+                    for fs in fs_new:
+                        if fs not in fs_list:
+                            fs_list.append(fs)
+                else:
+                    logger.warning(
+                        f'No {geometry} FieldSource found for variable "{var}".'
+                    )
             
             # Create analysis tasks
-            for fs in fs_list:
-                ref_files = []
-                for idt, dt in enumerate(init_dates):
-                    for lt in lead_times[idt]:
-                        # Get name of the grib file.
-                        # Note we hard-code the "grib2" suffix so it
-                        # doesn't look for "kerchunk" file suffixs.
-                        filename = fs.get_filename(dt, {'forecast_lead':lt})
-                        # Get reference files for this grib file.
-                        ltrefs = dask.delayed(kerchunk_grib)(filename)
-                        # Add to overall list for this task.
-                        ref_files.append(ltrefs)
-                ref_files = dask.compute(*ref_files)
-                task_vars = [var_dict for var_dict in fs.variables 
-                             if var_dict['varname_out'] in request_variables]
-                result.append(
-                    GridAnalysisTask(list(itertools.chain(*ref_files)), 
-                                     fs.coords,
-                                     task_vars,
-                                     None,
-                                     stations,
-                                     fs.file_format)
-                )
+            if fs_list:
+                for fs in fs_list:
+                    ref_files = []
+                    for idt, dt in enumerate(init_dates):
+                        for lt in lead_times[idt]:
+                            # Get name of the grib file.
+                            # Note we hard-code the "grib2" suffix so it
+                            # doesn't look for "kerchunk" file suffixs.
+                            filename = fs.get_filename(dt, {'forecast_lead':lt})
+                            # Get reference files for this grib file.
+                            ltrefs = dask.delayed(kerchunk_grib)(filename)
+                            # Add to overall list for this task.
+                            ref_files.append(ltrefs)
+                    ref_files = dask.compute(*ref_files)
+                    task_vars = [var_dict for var_dict in fs.variables 
+                                if var_dict['varname_out'] in request_variables]
+                    result.append(
+                        GridAnalysisTask(list(itertools.chain(*ref_files)), 
+                                        fs.coords,
+                                        task_vars,
+                                        None,
+                                        stations,
+                                        fs.file_format)
+                    )
         return result
 
     def get_init_time_forecast(
