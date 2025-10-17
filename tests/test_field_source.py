@@ -3,25 +3,32 @@ import sys
 sys.path.append(str(pathlib.Path(__file__).parent.parent.absolute()))
 import datetime
 from seanode.field_source import FieldSource
+from seanode.request_options import FileGeometry
 
 
 # Define some FieldSource instances for testing.
 fs_just_datetime = FieldSource(
     'dir/subdir/{yyyymmdd}/cwl.t{hh}z.nc', 
     [{'varname_out': 'cwl_bias_corrected', 'varname_file':'zeta', 'datum':'MSL'}], 
-    {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}
+    {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+    FileGeometry.POINTS,
+    'nc'
 )
 
 fs_no_datetime = FieldSource(
     'dir/subdir/cwl.t{lead}z.nc', 
     [{'varname_out': 'cwl_bias_corrected', 'varname_file':'zeta', 'datum':'MSL'}], 
-    {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}
+    {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+    FileGeometry.POINTS,
+    'nc'
 )
 
 fs_both = FieldSource(
     'dir/subdir/{yyyymmdd}/cwl.t{hh}z.{lead}.nc', 
     [{'varname_out': 'cwl_bias_corrected', 'varname_file':'zeta', 'datum':'MSL'}], 
-    {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}
+    {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+    FileGeometry.POINTS,
+    'nc'
 )
 
 # Define a common initialization datetime and namespace for testing.
