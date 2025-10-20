@@ -228,10 +228,6 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
                     for fs in fs_new:
                         if fs not in fs_list:
                             fs_list.append(fs)
-                else:
-                    logger.warning(
-                        f'No FileGeometry.POINTS FieldSource found for variable "{var}".'
-                    )
             
             # Create analysis tasks
             if fs_list:
@@ -312,11 +308,7 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
                     for fs in fs_new:
                         if fs not in fs_list:
                             fs_list.append(fs)
-                else:
-                    logger.warning(
-                        f'No FileGeometry.MESH FieldSource found for variable "{var}".'
-                    )
-            
+             
             # Create analysis tasks
             if fs_list:
                 for fs in fs_list:

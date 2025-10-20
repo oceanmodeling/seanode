@@ -217,10 +217,6 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
                     for fs in fs_new:
                         if fs not in fs_list:
                             fs_list.append(fs)
-                else:
-                    logger.warning(
-                        f'No {geometry} FieldSource found for variable "{var}".'
-                    )
             
             # Create analysis tasks
             if fs_list:

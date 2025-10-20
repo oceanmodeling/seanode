@@ -111,17 +111,15 @@ def test_get_analysis_task_forecast_current_version():
 # ----------------------------------------------------------------
 # Forecast, unavailable variable.
 def test_get_analysis_task_forecast_unavailable_variable():
-    try:
-        gfs.get_analysis_tasks(
-            ['cwl_bias_corrected'],
-            df_stations,
-            dt_start,
-            dt_start,
-            seanode.request_options.ForecastType.FORECAST, 
-            seanode.request_options.FileGeometry.GRID
-        )
-    except Exception as e:
-        assert "'NoneType' object is not iterable" in str(e)
+    atf = gfs.get_analysis_tasks(
+        ['cwl_bias_corrected'],
+        df_stations,
+        dt_start,
+        dt_start,
+        seanode.request_options.ForecastType.FORECAST, 
+        seanode.request_options.FileGeometry.GRID
+    )
+    assert atf == []
     return None
 
 
@@ -144,19 +142,17 @@ def test_get_analysis_task_forecast_future_start():
 
 # ----------------------------------------------------------------
 # Forecast, unavailable geometry.
-def test_get_analysis_task_forecast_unavailable_geometry():
-    try:
-        gfs.get_analysis_tasks(
-            ['ps'],
-            df_stations,
-            dt_start,
-            dt_start,
-            seanode.request_options.ForecastType.FORECAST, 
-            seanode.request_options.FileGeometry.POINTS
-        )
-    except TypeError as e:
-        assert "'NoneType' object is not iterable" in str(e)
-        return None
+def test_get_analysis_task_forecast_unavailable_geometry(): 
+    atf = gfs.get_analysis_tasks(
+        ['ps'],
+        df_stations,
+        dt_start,
+        dt_start,
+        seanode.request_options.ForecastType.FORECAST, 
+        seanode.request_options.FileGeometry.POINTS
+    )
+    assert atf == []
+    return None
 
 
 # ----------------------------------------------------------------

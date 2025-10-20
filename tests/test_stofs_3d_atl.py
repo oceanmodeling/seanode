@@ -107,17 +107,15 @@ def test_get_analysis_task_forecast_v1p1():
 # ----------------------------------------------------------------
 # Forecast, v1.1, unavailable variable.
 def test_get_analysis_task_forecast_v1p1_unavailable_variable():
-    try:
-        s3d.get_analysis_tasks(
-            ['cwl_bias_corrected'],
-            df_stations,
-            dt_v1p1,
-            dt_v1p1,
-            seanode.request_options.ForecastType.FORECAST, 
-            seanode.request_options.FileGeometry.POINTS
-        )
-    except Exception as e:
-        assert "'NoneType' object is not iterable" in str(e)
+    atf = s3d.get_analysis_tasks(
+        ['cwl_bias_corrected'],
+        df_stations,
+        dt_v1p1,
+        dt_v1p1,
+        seanode.request_options.ForecastType.FORECAST, 
+        seanode.request_options.FileGeometry.POINTS
+    )
+    assert atf == []
     return None
 
 
@@ -140,19 +138,17 @@ def test_get_analysis_task_forecast_future_start():
 
 # ----------------------------------------------------------------
 # Forecast, v2.1, unavailable geometry.
-def test_get_analysis_task_forecast_unavailable_geometry():
-    try:
-        s3d.get_analysis_tasks(
-            ['cwl'],
-            df_stations,
-            dt_start,
-            dt_end,
-            seanode.request_options.ForecastType.FORECAST, 
-            seanode.request_options.FileGeometry.GRID
-        )
-    except TypeError as e:
-        assert "'NoneType' object is not iterable" in str(e)
-        return None
+def test_get_analysis_task_forecast_unavailable_geometry(): 
+    atf = s3d.get_analysis_tasks(
+        ['cwl'],
+        df_stations,
+        dt_start,
+        dt_end,
+        seanode.request_options.ForecastType.FORECAST, 
+        seanode.request_options.FileGeometry.GRID
+    )
+    assert atf == []
+    return None
 
 
 if __name__ == '__main__':

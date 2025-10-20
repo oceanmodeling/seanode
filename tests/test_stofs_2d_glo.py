@@ -104,17 +104,15 @@ def test_get_analysis_task_forecast_v2p0():
 # ----------------------------------------------------------------
 # Forecast, v2.0, unavailable variable.
 def test_get_analysis_task_forecast_v2p0_unavailable_variable():
-    try:
-        s2d.get_analysis_tasks(
-            ['cwl_bias_corrected'],
-            df_stations,
-            dt_v2p0,
-            dt_v2p0,
-            seanode.request_options.ForecastType.FORECAST, 
-            seanode.request_options.FileGeometry.POINTS
-        )
-    except Exception as e:
-        assert "'NoneType' object is not iterable" in str(e)
+    atf = s2d.get_analysis_tasks(
+        ['cwl_bias_corrected'],
+        df_stations,
+        dt_v2p0,
+        dt_v2p0,
+        seanode.request_options.ForecastType.FORECAST, 
+        seanode.request_options.FileGeometry.POINTS
+    )
+    assert atf == []
     return None
 
 
@@ -130,6 +128,7 @@ def test_get_analysis_task_forecast_future_start():
         seanode.request_options.FileGeometry.POINTS
     )
     # In future, this should return an error.
+    # But for now, there is no date checking for the inputs.
     assert len(atf) == 1
     assert '20351201' in atf[0].filename
     return None
@@ -138,18 +137,16 @@ def test_get_analysis_task_forecast_future_start():
 # ----------------------------------------------------------------
 # Forecast, v2.1, unavailable geometry.
 def test_get_analysis_task_forecast_unavailable_geometry():
-    try:
-        s2d.get_analysis_tasks(
-            ['cwl_bias_corrected'],
-            df_stations,
-            dt_start,
-            dt_end,
-            seanode.request_options.ForecastType.FORECAST, 
-            seanode.request_options.FileGeometry.GRID
-        )
-    except TypeError as e:
-        assert "'NoneType' object is not iterable" in str(e)
-        return None
+    atf = s2d.get_analysis_tasks(
+        ['cwl_bias_corrected'],
+        df_stations,
+        dt_start,
+        dt_end,
+        seanode.request_options.ForecastType.FORECAST, 
+        seanode.request_options.FileGeometry.GRID
+    )
+    assert atf == []
+    return None
 
 
 if __name__ == '__main__':
