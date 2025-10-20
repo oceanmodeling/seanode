@@ -11,11 +11,16 @@ STOFS2DGloTaskCreator
 from typing import List, Tuple, Iterable
 import datetime
 import pandas
+import logging
 # This package
 from seanode.analysis_task import AnalysisTask
+from seanode.analysis_task_mesh import MeshAnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
 from seanode.request_options import FileGeometry, ForecastType
 from seanode.field_source import FieldSource
+
+
+logger = logging.getLogger(__name__)
 
 
 class STOFS2DGloTaskCreator(ModelTaskCreator):
@@ -25,10 +30,6 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
     
     Attributes
     ----------
-    bucket_name
-    dir_prefix
-    file_prefix
-    geometry_mapper
     cycles
     nowcast_period
     data_catalog
@@ -40,14 +41,9 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
     get_init_time_forecast
     get_init_times_nowcast
     get_analysis_tasks
-    get_filename
     
     """
 
-    bucket_name = 'noaa-gestofs-pds'
-    dir_prefix = 'stofs_2d_glo'
-    file_prefix = 'stofs_2d_glo'
-    geometry_mapper = {'points':'points', 'mesh':'fields'}
     cycles = (0, 6, 12, 18)
     nowcast_period = 6
     data_catalog = {
@@ -55,41 +51,84 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
             'first_run': datetime.datetime(2024, 5, 14, 12, 0),
             'last_run': None,
             'field_sources':[
-                FieldSource('cwl', 'nc', FileGeometry.POINTS,
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.points.cwl.nc',
                             [{'varname_out':'cwl_bias_corrected', 'varname_file':'zeta', 'datum':'LMSL'}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
-                FieldSource('cwl.noanomaly', 'nc', FileGeometry.POINTS,
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.points.cwl.noanomaly.nc',
                             [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
-                FieldSource('htp', 'nc', FileGeometry.POINTS,
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.points.htp.nc',
                             [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'LMSL'}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
-                FieldSource('swl', 'nc', FileGeometry.POINTS,
-                            [{'varname_out':'swl', 'varname_file':'zeta', 'datum':'LMSL'}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
-                FieldSource('cwl.vel', 'nc', FileGeometry.POINTS,
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.points.swl.nc',
+                            [{'varname_out':'swl', 'varname_file':'zeta', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.points.cwl.vel.nc',
                             [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
                              {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'})
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.nc',
+                            [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.htp.nc',
+                            [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'LMSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.swl.nc',
+                            [{'varname_out':'swl', 'varname_file':'zeta', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.vel.nc',
+                            [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
+                             {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc')
             ]
         },
         'v2.0':{
             'first_run':datetime.datetime(2020, 12, 30, 0, 0),
             'last_run': datetime.datetime(2024, 5, 14, 6, 0),
             'field_sources':[
-                FieldSource('cwl', 'nc', FileGeometry.POINTS,
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.points.cwl.nc',
                             [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
-                FieldSource('htp', 'nc', FileGeometry.POINTS,
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.points.htp.nc',
                             [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'LMSL'}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
-                FieldSource('swl', 'nc', FileGeometry.POINTS,
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.points.swl.nc',
                             [{'varname_out':'swl', 'varname_file':'zeta', 'datum':'LMSL'}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'}),
-                FieldSource('cwl.vel', 'nc', FileGeometry.POINTS,
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.points.cwl.vel.nc',
                             [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
                              {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}],
-                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'})
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.nc',
+                            [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.htp.nc',
+                            [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'LMSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.swl.nc',
+                            [{'varname_out':'swl', 'varname_file':'zeta', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc'),
+                FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.vel.nc',
+                            [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
+                             {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time'},
+                            FileGeometry.MESH, 'nc')
             ]
         }
     }
@@ -174,56 +213,36 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
             fs_list = []
             for var in request_variables:
                 fs_new = self.get_field_source(version_name, var, geometry)
-                for fs in fs_new:
-                    if fs not in fs_list:
-                        fs_list.append(fs)
+                if fs_new:
+                    for fs in fs_new:
+                        if fs not in fs_list:
+                            fs_list.append(fs)
             
             # Create analysis tasks
-            for fs in fs_list:
-                for idt, dt in enumerate(init_dates):
-                    filename = self.get_filename(dt, fs.file_geometry, 
-                                                 fs.var_group, fs.file_format)
-                    task_vars = [var_dict for var_dict in fs.variables 
-                                 if var_dict['varname_out'] in request_variables]
-                    result.append(
-                        AnalysisTask(filename, 
-                                     fs.coords,
-                                     task_vars, 
-                                     time_slices[idt], 
-                                     stations)
-                    )
+            if fs_list:
+                for fs in fs_list:
+                    for idt, dt in enumerate(init_dates):
+                        filename = fs.get_filename(dt)
+                        task_vars = [var_dict for var_dict in fs.variables 
+                                    if var_dict['varname_out'] in request_variables]
+                        if geometry == FileGeometry.MESH:
+                            result.append(
+                                MeshAnalysisTask(filename, 
+                                                fs.coords,
+                                                task_vars, 
+                                                time_slices[idt], 
+                                                stations,
+                                                fs.file_format)
+                            )
+                        else:
+                            result.append(
+                                AnalysisTask(filename, 
+                                            fs.coords,
+                                            task_vars, 
+                                            time_slices[idt], 
+                                            stations)
+                            )
         return result
-    
-    def get_filename(
-            self,
-            init_datetime: datetime.datetime,
-            geometry: FileGeometry,
-            var_group: str,
-            file_format: str
-    ) -> str:
-        """Get filepath for forecast initialized at a specific time.
-
-        Parameters
-        ----------
-        init_datetime
-            The model run initialization time.
-        geometry
-            Type of files from which to retrieve data.
-        var_group
-            String representing description of file contents.
-        file_format
-            File format; usually "nc" or "grib2".
-
-        Returns
-        -------
-        Full path to a single file.
-        
-        """
-        geom_name = self.geometry_mapper[geometry.value]
-        yyyymmdd = init_datetime.strftime('%Y%m%d')
-        hh = init_datetime.strftime('%H')
-        filepath = f'{self.bucket_name}/{self.dir_prefix}.{yyyymmdd}/{self.file_prefix}.t{hh}z.{geom_name}.{var_group}.{file_format}'
-        return filepath
 
 
         

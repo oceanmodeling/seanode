@@ -12,12 +12,17 @@ import pandas
 import datetime
 import dask
 import itertools
+import math
+import logging
 from seanode.analysis_task import AnalysisTask
 from seanode.analysis_task_grid import GridAnalysisTask
 from seanode.models.model_task_creator import ModelTaskCreator
 from seanode.request_options import FileGeometry, ForecastType
 from seanode.field_source import FieldSource
 from seanode.kerchunker import kerchunk_grib
+
+
+logger = logging.getLogger(__name__)
 
 
 class GFSTaskCreator(ModelTaskCreator):
@@ -28,10 +33,6 @@ class GFSTaskCreator(ModelTaskCreator):
     
     Attributes
     ----------
-    bucket_name
-    dir_prefix
-    file_prefix
-    geometry_mapper
     cycles
     nowcast_period
     data_catalog
@@ -43,13 +44,9 @@ class GFSTaskCreator(ModelTaskCreator):
     get_init_time_forecast
     get_init_times_nowcast
     get_analysis_tasks
-    get_filename
     
     """
 
-    bucket_name = 'noaa-gfs-bdp-pds'
-    dir_prefix = 'gfs'
-    file_prefix = 'gfs'
     cycles = (0, 6, 12, 18)
     nowcast_period = 6
     data_catalog = {
@@ -57,12 +54,13 @@ class GFSTaskCreator(ModelTaskCreator):
             'first_run': datetime.datetime(2021, 3, 22, 12, 0),
             'last_run': None,
             'field_sources':[
-                FieldSource('sfluxgrb', 'kerchunk', FileGeometry.GRID,
+                FieldSource('noaa-gfs-bdp-pds/gfs.{yyyymmdd}/{hh}/atmos/gfs.t{hh}z.sfluxgrbf{forecast_lead:03d}.grib2',
                             [{'varname_out':'ps', 'varname_file':'sp', 'datum':None},
                              {'varname_out':'u10', 'varname_file':'u10', 'datum':None},
                              {'varname_out':'v10', 'varname_file':'v10', 'datum':None}],
                             {'time':'valid_time', 'init_time':'time', 
-                             'latitude':'latitude','longitude':'longitude'})
+                             'latitude':'latitude','longitude':'longitude'},
+                             FileGeometry.GRID, 'kerchunk'),
             ]
         }
     }
@@ -147,67 +145,37 @@ class GFSTaskCreator(ModelTaskCreator):
             fs_list = []
             for var in request_variables:
                 fs_new = self.get_field_source(version_name, var, geometry)
-                for fs in fs_new:
-                    if fs not in fs_list:
-                        fs_list.append(fs)
+                if fs_new:
+                    for fs in fs_new:
+                        if fs not in fs_list:
+                            fs_list.append(fs)
             
             # Create analysis tasks
-            for fs in fs_list:
-                ref_files = []
-                for idt, dt in enumerate(init_dates):
-                    for lt in lead_times[idt]:
-                        # Get name of the grib file.
-                        # Note we hard-code the "grib2" suffix so it
-                        # doesn't look for "kerchunk" file suffixs.
-                        filename = self.get_filename(dt, lt, 
-                                                     fs.var_group, 
-                                                     'grib2')
-                        # Get reference files for this grib file.
-                        ltrefs = dask.delayed(kerchunk_grib)(filename)
-                        # Add to overall list for this task.
-                        ref_files.append(ltrefs)
-                ref_files = dask.compute(*ref_files)
-                task_vars = [var_dict for var_dict in fs.variables 
-                             if var_dict['varname_out'] in request_variables]
-                result.append(
-                    GridAnalysisTask(list(itertools.chain(*ref_files)), 
-                                     fs.coords,
-                                     task_vars,
-                                     None,
-                                     stations,
-                                     fs.file_format)
-                )
+            if fs_list:
+                for fs in fs_list:
+                    ref_files = []
+                    for idt, dt in enumerate(init_dates):
+                        for lt in lead_times[idt]:
+                            # Get name of the grib file.
+                            # Note we hard-code the "grib2" suffix so it
+                            # doesn't look for "kerchunk" file suffixs.
+                            filename = fs.get_filename(dt, {'forecast_lead':lt})
+                            # Get reference files for this grib file.
+                            ltrefs = dask.delayed(kerchunk_grib)(filename)
+                            # Add to overall list for this task.
+                            ref_files.append(ltrefs)
+                    ref_files = dask.compute(*ref_files)
+                    task_vars = [var_dict for var_dict in fs.variables 
+                                if var_dict['varname_out'] in request_variables]
+                    result.append(
+                        GridAnalysisTask(list(itertools.chain(*ref_files)), 
+                                        fs.coords,
+                                        task_vars,
+                                        None,
+                                        stations,
+                                        fs.file_format)
+                    )
         return result
-    
-    def get_filename(
-            self,
-            init_datetime: datetime.datetime,
-            forecast_lead: int,
-            var_group: str,
-            file_format: str
-    ) -> str:
-        """Get filepath for forecast initialized at a specific time.
-
-        Parameters
-        ----------
-        init_datetime
-            The model run initialization time.
-        forecast_lead
-            Lead time (in whole hours) of forecast in this file.
-        var_group
-            String representing description of file contents.
-        file_format
-            File format; usually "nc" or "grib2".
-
-        Returns
-        -------
-        Full path to a single file.
-        
-        """
-        yyyymmdd = init_datetime.strftime('%Y%m%d')
-        hh = init_datetime.strftime('%H')
-        filepath = f'{self.bucket_name}/{self.dir_prefix}.{yyyymmdd}/{hh}/atmos/{self.file_prefix}.t{hh}z.{var_group}f{forecast_lead:03d}.{file_format}'
-        return filepath
 
     def get_init_time_forecast(
         self,
@@ -310,8 +278,8 @@ class GFSTaskCreator(ModelTaskCreator):
                     lead_result.append(
                         tuple(
                             range(
-                                6 - min(6,int((nowcast_end - start_date)/datetime.timedelta(hours=1))),
-                                1 + min(5,int((end_date - nowcast_start)/datetime.timedelta(hours=1)))
+                                6 - min(6,math.ceil((nowcast_end - start_date)/datetime.timedelta(hours=1))),
+                                1 + min(5,math.ceil((end_date - nowcast_start)/datetime.timedelta(hours=1)))
                             )
                         )
                     )

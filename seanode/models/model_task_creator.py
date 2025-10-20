@@ -157,8 +157,11 @@ class ModelTaskCreator:
         # Check if exactly 1 DataSource in result
         if len(result) > 1:
             logger.warning(f'More than one FieldSource available for variable {var} in {geometry} files.')
+            return result
+            # TODO: Or should this return an empty list?
         elif len(result) == 0:
             logger.warning(f'No FieldSource available for variable {var} in {geometry} files.')
+            return result
         else:
             return result
             
