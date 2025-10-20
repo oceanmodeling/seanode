@@ -168,6 +168,16 @@ class AnalysisTask:
                         self.dataframe[vdict['varname_out']].values,
                         online=True, epoch=None
                     )
+                    if np.isinf(z_conv).any():
+                        logger.error(
+                            f'"inf" values detected in {vdict['varname_out']} '
+                            + 'after datum conversion. These will be set to' 
+                            + 'NaN.\n This may be caused by attempting datum '
+                            + 'conversion at locations outside vdatum coverage.'
+                        )
+                        logger.info('For CO-OPS stations, you could try the '
+                                    + '"oceanmodeling/coops-metadata" repository.')
+                        z_conv =   np.where(np.isinf(z_conv), np.nan, z_conv) 
                     self.dataframe[vdict['varname_out']] = z_conv
         
         return
