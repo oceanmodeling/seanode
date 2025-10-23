@@ -134,6 +134,10 @@ class GridAnalysisTask(AnalysisTask):
                 time=slice(numpy.datetime64(self.timeslice[0]), 
                            numpy.datetime64(self.timeslice[1]))
             )
+        # If there are no timesteps, return empty dataframe.
+        if ds_sub['time'].size == 0:
+            logger.warning('No time steps found in dataset after time subsetting. Returning empty dataframe.')
+            return pandas.DataFrame()
             
         # Subset stations (assumes stations has latitude and longitude
         # coordinates with a "station"-like dimension).
@@ -150,7 +154,7 @@ class GridAnalysisTask(AnalysisTask):
             else:
                 logger.debug('Creating lat_lon coordinate to use as station dimension in GridAnalysisTask station subsetter.')
                 df_stations = self.stations
-                lat_lon = [f'{la:.5f}N {lo:.5f}E' for (la, lo) in 
+                lat_lon = [f'{la:.5f}N_{lo:.5f}E' for (la, lo) in 
                            zip(self.stations.latitude, self.stations.longitude)]
                 df_stations.insert(0,'station', lat_lon)
                 ds_stations = df_stations.set_index('station').to_xarray()

@@ -133,7 +133,11 @@ class SurgeModelRequest:
                 df_list.append(t.run(self.data_store, self.output_datum))
             except:
                 logger.warning(f'Cannot complete analysis task on file {t.filename}.')
-        df_out = self._concat_and_update(df_list)
+        if df_list:
+            df_out = self._concat_and_update(df_list)
+        else:
+            logger.warning('No data frames returned from AnalysisTasks.')
+            df_out = pandas.DataFrame()
         return df_out
 
     def _concat_and_update(

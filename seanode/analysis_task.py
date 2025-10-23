@@ -122,15 +122,19 @@ class AnalysisTask:
             list(self.coords.keys())
         # Subset variables.
         ds_sub = ds_sub[file_var_list]
+
         # Subset time.
         if self.timeslice is not None:
             ds_sub = ds_sub.sel(
                 time=slice(numpy.datetime64(self.timeslice[0]), 
                            numpy.datetime64(self.timeslice[1]))
             )
+        # If there are no timesteps, return empty dataframe.
+        if ds_sub['time'].size == 0:
+            logger.warning('No time steps found in dataset after time subsetting. Returning empty dataframe.')
+            return pandas.DataFrame()
+        
         # Subset stations. 
-        # TODO: This might change if we subclass to 
-        # PointsAnalysisTask and MeshAnalysisTask.
         df = extract_stations_by_nos_id(ds_sub.load(), self.stations)
         return df
 
@@ -168,7 +172,7 @@ class AnalysisTask:
                         self.dataframe[vdict['varname_out']].values,
                         online=True, epoch=None
                     )
-                    if np.isinf(z_conv).any():
+                    if numpy.isinf(z_conv).any():
                         logger.error(
                             f'"inf" values detected in {vdict['varname_out']} '
                             + 'after datum conversion. These will be set to' 
@@ -177,7 +181,7 @@ class AnalysisTask:
                         )
                         logger.info('For CO-OPS stations, you could try the '
                                     + '"oceanmodeling/coops-metadata" repository.')
-                        z_conv =   np.where(np.isinf(z_conv), np.nan, z_conv) 
+                        z_conv = numpy.where(numpy.isinf(z_conv), numpy.nan, z_conv)
                     self.dataframe[vdict['varname_out']] = z_conv
         
         return

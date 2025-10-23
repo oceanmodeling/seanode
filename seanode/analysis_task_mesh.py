@@ -127,7 +127,7 @@ class MeshAnalysisTask(AnalysisTask):
         try:
             ds_sub = ds_sub.reset_coords(['latitude', 'longitude'])
         except:
-            logging.warn('Cannot convert latitude and longitude to data variables.')
+            logger.warning('Cannot convert latitude and longitude to data variables.')
         
         # Make sure longitude is in range [-180.0, 180.0]
         logger.debug('switching longitude')
@@ -149,6 +149,10 @@ class MeshAnalysisTask(AnalysisTask):
                 time=slice(numpy.datetime64(self.timeslice[0]), 
                            numpy.datetime64(self.timeslice[1]))
             )
+        # If there are no timesteps, return empty dataframe.
+        if ds_sub['time'].size == 0:
+            logger.warning('No time steps found in dataset after time subsetting. Returning empty dataframe.')
+            return pandas.DataFrame()
         
         # Get nearest model points.
         logger.debug('finding nearest mesh points')
@@ -164,7 +168,7 @@ class MeshAnalysisTask(AnalysisTask):
             dists_inds.coords['station'] = self.stations['station_name']
         else:
             logger.debug('Creating lat_lon coordinate to use as station dimension in MeshAnalysisTask station subsetter.')
-            lat_lon = [f'{la:.5f}N {lo:.5f}E' for (la, lo) in 
+            lat_lon = [f'{la:.5f}N_{lo:.5f}E' for (la, lo) in 
                        zip(self.stations.latitude, self.stations.longitude)]
             dists_inds.coords['station'] = lat_lon
         
@@ -180,7 +184,6 @@ class MeshAnalysisTask(AnalysisTask):
             test = ds_sub_test.to_dataframe()
         except:
             logger.debug('Manually loading dataset before station subsetting.')
-            import pdb; pdb.set_trace()
             ds_sub.load()
             ds_sub_test = ds_sub.isel({d:dists_inds[d] for d in ds_sub['longitude'].dims})
         ds_sub = ds_sub_test

@@ -9,6 +9,10 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
+# Useful for debugging analysis_task_mesh.py:
+#import seanode.analysis_task_mesh
+#atm_logger = logging.getLogger('seanode.analysis_task_mesh')
+#atm_logger.setLevel(logging.DEBUG)
 
 df_stations = pd.DataFrame(
     data={
@@ -30,4 +34,17 @@ df_forecast = get_surge_model_at_stations(
     'AWS'
 )
 
+df_nowcast = get_surge_model_at_stations(
+    'STOFS_3D_ATL',
+    ['cwl'],
+    df_stations,
+    datetime.datetime(2024,12,1,12,0),
+    datetime.datetime(2024,12,2,12,0),
+    'nowcast',
+    'mesh',
+    'MLLW',
+    'AWS'
+)
+
 assert df_forecast.shape == (288,3), "df_forecast should have shape (288, 3)."
+assert df_nowcast.shape == (75,3), "df_nowcast should have shape (75, 3)."
