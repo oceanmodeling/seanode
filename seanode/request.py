@@ -133,10 +133,11 @@ class SurgeModelRequest:
                 df_list.append(t.run(self.data_store, self.output_datum))
             except:
                 logger.warning(f'Cannot complete analysis task on file {t.filename}.')
+        df_list = [df for df in df_list if not df.empty]
         if df_list:
             df_out = self._concat_and_update(df_list)
         else:
-            logger.warning('No data frames returned from AnalysisTasks.')
+            logger.warning('No non-empty data frames returned from AnalysisTasks.')
             df_out = pandas.DataFrame()
         return df_out
 
@@ -162,9 +163,7 @@ class SurgeModelRequest:
             Containing combined data of all data frames in the input. 
             
         """
-        df_list = [df for df in df_list if not df.empty]
         result = df_list[0]
-
         if len(df_list) > 1:
             for df in df_list[1:]:
                 
