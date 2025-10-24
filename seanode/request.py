@@ -162,6 +162,7 @@ class SurgeModelRequest:
             Containing combined data of all data frames in the input. 
             
         """
+        df_list = [df for df in df_list if not df.empty]
         result = df_list[0]
 
         if len(df_list) > 1:
