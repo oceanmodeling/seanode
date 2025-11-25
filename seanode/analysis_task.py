@@ -138,6 +138,23 @@ class AnalysisTask:
         
         # Subset stations. 
         df = extract_stations_by_nos_id(ds_sub.load(), self.stations)
+        
+        # Rename columns.
+        col_name_mapper = {vdict['varname_file']:vdict['varname_out'] 
+                           for vdict in self.varlist}
+        df = df.rename(columns=col_name_mapper)
+        
+        # Add metadata.
+        df.attrs['ColumnMetaData'] = {}
+        for vdict in self.varlist:
+            vmd = {}
+            if vdict['varname_file'] in ds_sub:
+                if ds_sub[vdict['varname_file']].attrs:
+                    vmd.update(ds_sub[vdict['varname_file']].attrs)
+            if 'datum' in vdict and vdict['datum'] is not None:
+                vmd['datum'] = vdict['datum']
+            df.attrs['ColumnMetaData'][vdict['varname_out']] = vmd
+        #
         return df
 
     def postprocess(self, output_datum: str) -> None:
@@ -159,11 +176,6 @@ class AnalysisTask:
         
         """
         logger.info('postprocessing data frame')
-        # Rename columns.
-        col_name_mapper = {vdict['varname_file']:vdict['varname_out'] 
-                           for vdict in self.varlist}
-        self.dataframe = self.dataframe.rename(columns=col_name_mapper)
-        
         # Datum conversion.
         if output_datum is not None:
             for vdict in self.varlist:
@@ -186,7 +198,15 @@ class AnalysisTask:
                                     + '"oceanmodeling/coops-metadata" repository.')
                         z_conv = numpy.where(numpy.isinf(z_conv), numpy.nan, z_conv)
                     self.dataframe[vdict['varname_out']] = z_conv
-        
+                    # Update metadata.
+                    try:
+                        self.dataframe.attrs['ColumnMetaData'][vdict['varname_out']]['datum'] = output_datum
+                    except KeyError:
+                        logger.warning(
+                            f'No metadata found for variable {vdict["varname_out"]} '
+                            + 'when updating datum after conversion.'
+                        )
+        #
         return
 
     def run(self, store: DataStore, output_datum: str) -> pandas.DataFrame:

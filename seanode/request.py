@@ -139,6 +139,21 @@ class SurgeModelRequest:
         else:
             logger.warning('No non-empty data frames returned from AnalysisTasks.')
             df_out = pandas.DataFrame()
+        # Add metadata.
+        df_out.attrs['DataFrameMetaData'] = {
+            'description':'seanode model data request',
+            'request_parameters': {
+                'model': self.model_name.value,
+                'data_store': self.data_store_name.value,
+                'variables': self.variables,
+                'number_of_stations': len(self.stations),
+                'forecast_type': self.forecast_type.value,
+                'geometry': self.geometry.value,
+                'start_date': self.start_date.isoformat(),
+                'end_date': self.end_date.isoformat(),
+                'output_datum': self.output_datum
+            }
+        }
         return df_out
 
     def _concat_and_update(
@@ -148,7 +163,8 @@ class SurgeModelRequest:
         """Combine a list of data frames into a single data frame.
 
         This function adds new columns and indices as needed, and populates
-        any NaN data where possible.
+        any NaN data where possible. It also combines metadata from the 
+        different input data frames.
 
         Parameters
         ----------
@@ -163,7 +179,10 @@ class SurgeModelRequest:
             Containing combined data of all data frames in the input. 
             
         """
-        result = df_list[0]
+        result = df_list[0].copy()
+        if 'ColumnMetaData' not in result.attrs:
+            result.attrs['ColumnMetaData'] = {}
+
         if len(df_list) > 1:
             for df in df_list[1:]:
                 
@@ -175,7 +194,22 @@ class SurgeModelRequest:
                     result = result.reindex(result.index.append(not_indexed))
                 if any(new_cols):
                     result[new_cols] = numpy.nan
-
+                    # Update metadata for new columns.
+                    for col in new_cols:
+                        result.attrs['ColumnMetaData'][col] = \
+                            df.attrs['ColumnMetaData'].get(col, {})
+                
+                # Check for any conflicting metadata.
+                for col in df.columns:
+                    if col in result.attrs['ColumnMetaData']:
+                        for key, val in df.attrs['ColumnMetaData'].get(col, {}).items():
+                            if key in result.attrs['ColumnMetaData'][col]:
+                                if result.attrs['ColumnMetaData'][col][key] != val:
+                                    logger.warning(
+                                        f'Conflicting metadata for column {col}, '
+                                        f'key {key}: "{result.attrs["ColumnMetaData"][col][key]}" vs. "{val}".'
+                                    )
+                
                 # Overwrite NaNs in output dataframe.
                 result.update(df, overwrite=False)
                 
