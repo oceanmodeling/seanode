@@ -27,6 +27,7 @@ import numpy
 from coastalmodeling_vdatum import vdatum
 from seanode.data_stores import DataStore
 import logging
+import traceback
 
 
 logger = logging.getLogger(__name__)
@@ -115,6 +116,7 @@ class AnalysisTask:
             standardized, but the data variable names have not.
             
         """
+        logger.info('subsetting dataset')
         # Rename coordinates.
         ds_sub = ds.rename({v:k for k,v in self.coords.items()})
         # Get list of variables and coordinates to keep.
@@ -156,6 +158,7 @@ class AnalysisTask:
         None
         
         """
+        logger.info('postprocessing data frame')
         # Rename columns.
         col_name_mapper = {vdict['varname_file']:vdict['varname_out'] 
                            for vdict in self.varlist}
@@ -210,17 +213,12 @@ class AnalysisTask:
             AnalysisTask.
             
         """
-        #with self.open_dataset(store) as ds:
-        #    self.dataframe = self.get_subset(ds)
-        #self.postprocess(output_datum)
-        logger.warning('Opening file...')
         with self.open_dataset(store) as ds:
             try:
-                logger.warning('Subsetting data...')
                 self.dataframe = self.get_subset(ds)
-                logger.warning('Postprocessing data...')
                 self.postprocess(output_datum)
-            except:
+            except Exception as e:
+                logger.warning(traceback.format_exc())
                 ds.close()
         return self.dataframe
 
@@ -352,7 +350,7 @@ def extract_stations_by_nos_id(
         obs_name_in_model = [nos_id in nm.decode('utf-8') 
                              for nm in ds.station_name.data]
 
-        # Check that only one model station matchis this ID.
+        # Check that only one model station matches this ID.
         if numpy.sum(obs_name_in_model) > 1:
             logger.warning(f"More than one model station matches NOS ID {nos_id}")
         elif numpy.sum(obs_name_in_model) == 0:
