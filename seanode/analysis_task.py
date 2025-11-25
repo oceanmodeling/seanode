@@ -210,9 +210,18 @@ class AnalysisTask:
             AnalysisTask.
             
         """
+        #with self.open_dataset(store) as ds:
+        #    self.dataframe = self.get_subset(ds)
+        #self.postprocess(output_datum)
+        logger.warning('Opening file...')
         with self.open_dataset(store) as ds:
-            self.dataframe = self.get_subset(ds)
-        self.postprocess(output_datum)
+            try:
+                logger.warning('Subsetting data...')
+                self.dataframe = self.get_subset(ds)
+                logger.warning('Postprocessing data...')
+                self.postprocess(output_datum)
+            except:
+                ds.close()
         return self.dataframe
 
 
@@ -339,17 +348,15 @@ def extract_stations_by_nos_id(
 
     for nos_id in station_id_list:
 
-        # Find the model station names that match this station ID.
-        # Note these will usually be NOS ID matches, but don't
-        # actually have to be.
+        # Find the model station names that match this NOS ID.
         obs_name_in_model = [nos_id in nm.decode('utf-8') 
                              for nm in ds.station_name.data]
 
-        # Check that only one model station matches this ID.
+        # Check that only one model station matchis this ID.
         if numpy.sum(obs_name_in_model) > 1:
-            logger.warning(f"More than one model station matches station ID {nos_id}: skipping")
+            logger.warning(f"More than one model station matches NOS ID {nos_id}")
         elif numpy.sum(obs_name_in_model) == 0:
-            logger.warning(f"No model station matches for station ID {nos_id}")
+            logger.warning(f"No model station matches for NOS ID {nos_id}")
         else:   
             # If available, concatenate the data with other stations.
             station_df = ds.loc[dict(station=obs_name_in_model)]\
@@ -364,7 +371,7 @@ def extract_stations_by_nos_id(
                      sort=False
                 )
             except:
-                logger.warning(f"Cannot concatenate station data frame for station ID {nos_id}: Skipping.")
+                logger.warning(f"Cannot concatenate station data frame for NOS ID {nos_id}: Skipping.")
                 continue
 
     return result

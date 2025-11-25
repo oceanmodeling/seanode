@@ -95,10 +95,10 @@ class MeshAnalysisTask(AnalysisTask):
 
     def open_dataset(self, store: DataStore) -> xarray.Dataset:
         """Open this task's dataset from given data store."""
-        logger.info(f'opening file {self.filename}')
+        logger.info(f'opening file {self.filename} with format {self.file_format}')
         ds = store.open_file(self.filename, format=self.file_format)
-        logger.debug('file opened')
-        logger.debug(ds)
+        logger.info('file opened')
+        logger.info(ds)
         return ds
 
     def get_subset(self, ds:xarray.Dataset) -> pandas.DataFrame:
@@ -122,7 +122,7 @@ class MeshAnalysisTask(AnalysisTask):
         """
         logger.info('subsetting mesh dataset')
         # Rename coordinates and convert lat/lon to regular variables.
-        logger.debug('renaming variables')
+        logger.info('renaming variables')
         ds_sub = ds.rename({v:k for k,v in self.coords.items()})
         try:
             ds_sub = ds_sub.reset_coords(['latitude', 'longitude'])
@@ -130,20 +130,20 @@ class MeshAnalysisTask(AnalysisTask):
             logger.warning('Cannot convert latitude and longitude to data variables.')
         
         # Make sure longitude is in range [-180.0, 180.0]
-        logger.debug('switching longitude')
+        logger.info('switching longitude')
         ds_sub['longitude'] = seanode.utils.switch_lon_lims(
             ds_sub['longitude'], min_lon=-180.0
         )
         
         # Get list of variables and coordinates to keep.
-        logger.debug('subsetting variables')
+        logger.info('subsetting variables')
         file_var_list = [var_dict['varname_file'] for var_dict in self.varlist] + \
             list(self.coords.keys())
         # Subset variables.
         ds_sub = ds_sub[file_var_list]
         
         # Subset times (if applicable).
-        logger.debug('subsetting times')
+        logger.info('subsetting times')
         if self.timeslice is not None:
             ds_sub = ds_sub.sel(
                 time=slice(numpy.datetime64(self.timeslice[0]), 
@@ -155,19 +155,19 @@ class MeshAnalysisTask(AnalysisTask):
             return pandas.DataFrame()
         
         # Get nearest model points.
-        logger.debug('finding nearest mesh points')
+        logger.info('finding nearest mesh points')
         dists_inds = get_nearest_dists_inds(ds_sub, self.stations,
                                             n_nearest=3)
 
         # Try to add station coordinate if possible.
         if 'station' in self.stations:
-            logger.debug('Setting variable station as station dimension in MeshAnalysisTask station subsetter.')
+            logger.info('Setting variable station as station dimension in MeshAnalysisTask station subsetter.')
             dists_inds.coords['station'] = self.stations['station']
         elif 'station_name' in self.stations:
-            logger.debug('Setting variable station_name as station dimension in MeshAnalysisTask station subsetter.')
+            logger.info('Setting variable station_name as station dimension in MeshAnalysisTask station subsetter.')
             dists_inds.coords['station'] = self.stations['station_name']
         else:
-            logger.debug('Creating lat_lon coordinate to use as station dimension in MeshAnalysisTask station subsetter.')
+            logger.info('Creating lat_lon coordinate to use as station dimension in MeshAnalysisTask station subsetter.')
             lat_lon = [f'{la:.5f}N_{lo:.5f}E' for (la, lo) in 
                        zip(self.stations.latitude, self.stations.longitude)]
             dists_inds.coords['station'] = lat_lon
@@ -178,18 +178,19 @@ class MeshAnalysisTask(AnalysisTask):
         # sometimes doesn't work for a lazy-loaded dataset.
         # This avoids an exception like:
         #     AttributeError: 'ScipyArrayWrapper' object has no attribute 'vindex'
-        logger.debug('subsetting to nearest points')
+        logger.info('subsetting to nearest points')
         try:
             ds_sub_test = ds_sub.isel({d:dists_inds[d] for d in ds_sub['longitude'].dims})
             test = ds_sub_test.to_dataframe()
+            del test
         except:
-            logger.debug('Manually loading dataset before station subsetting.')
+            logger.info('Manually loading dataset before station subsetting.')
             ds_sub.load()
             ds_sub_test = ds_sub.isel({d:dists_inds[d] for d in ds_sub['longitude'].dims})
         ds_sub = ds_sub_test
         
         # Calculate inverse distance weights.
-        logger.debug('calculating weighted average of nearby points')
+        logger.info('calculating weighted average of nearby points')
         weights = calc_inv_dist_wts(dists_inds['distance'], exponent=1)
         # TODO: Add a version of weight calculation that takes the nearest
         # N (e.g., 3) non-missing points and calculates weights based on those.
@@ -201,7 +202,7 @@ class MeshAnalysisTask(AnalysisTask):
         ds_sub = ds_sub.sum(dim='k')
 
         # Convert dataset to data frame.
-        logger.debug('converting to data frame')
+        logger.info('converting to data frame')
         df = ds_sub.to_dataframe().reset_index().set_index(['station','time'])
         
         return df

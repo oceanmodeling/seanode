@@ -25,6 +25,21 @@ import xarray
 import ujson
 import zarr
 from kerchunk.combine import MultiZarrToZarr
+import os
+import xarray as xr
+import datetime as dt
+import pandas as pd
+import pathlib
+import fsspec
+import s3fs
+import ujson
+import dask.bag
+import logging
+import zarr
+from kerchunk.netCDF3 import NetCDF3ToZarr
+
+
+logger = logging.getLogger(__name__)
 
 
 class DataStore(ABC):
@@ -76,10 +91,31 @@ class AWSDataStore(DataStore):
             
         """
         if format == "nc":
-            filesystem = s3fs.S3FileSystem(anon=True)
-            url = f"s3://{fullpath}"
-            ds = xarray.open_dataset(filesystem.open(url, 'rb'),
-                                     drop_variables=['nvel'])
+            logger.info('Opening nc file')
+            dir_root = os.path.expanduser(os.environ['KERCHUNK_REF_DIR'])
+            fs_write = fsspec.filesystem('')
+            json_dir = pathlib.Path(dir_root) / pathlib.Path(fullpath).parents[0]
+            json_name_root = pathlib.Path(fullpath).stem
+            storage_opts = {'anon': True, 'skip_instance_cache': True}
+            h5chunks = NetCDF3ToZarr(f"s3://{fullpath}", storage_opts, inline_threshold=300)
+            json_dir.mkdir(parents=True, exist_ok=True)
+            outf = f"{json_dir}/{json_name_root}.json"
+            with fs_write.open(outf, 'wb') as f:
+                logger.info(f'Writing kerchunk reference to {outf}')
+                f.write(ujson.dumps(h5chunks.translate()).encode())
+            logger.info('Creating filesystem')
+            fs = fsspec.filesystem(
+                "reference", 
+                fo=f"{json_dir}/{json_name_root}.json", 
+                remote_protocol='s3',
+                remote_options={'anon':True,'skip_instance_cache':True},
+                target_options={'skip_instance_cache': True}
+            )
+            logger.info('Creating store')
+            store = zarr.storage.FsspecStore(fs)
+            logger.info('Opening data file from kerchunk reference files')
+            ds = xarray.open_dataset(store, engine="zarr", backend_kwargs=dict(consolidated=False), chunks={'time':1}, decode_timedelta=True)
+            logger.info('Dataset opened')
             return ds 
             
         elif format in ['grib', 'grib2']:
