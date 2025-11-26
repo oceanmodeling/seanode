@@ -11,11 +11,41 @@ import fsspec
 import s3fs
 import ujson
 from kerchunk.grib2 import scan_grib
+from kerchunk.netCDF3 import NetCDF3ToZarr
+from kerchunk.hdf import SingleHdf5ToZarr
 import dask.bag
 import logging
+import traceback
 
 
 logger = logging.getLogger(__name__)
+
+
+def create_get_json_dir(filepath: str) -> pathlib.Path:
+    """
+    Create directory path for kerchunk reference files based on input file path.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the original data file 
+        (could be a remote path, e.g., on S3).
+
+    Returns
+    -------
+    pathlib.Path
+        Directory path for storing kerchunk reference files.
+
+    """
+    try:
+        dir_root = os.path.expanduser(os.environ['KERCHUNK_REF_DIR'])
+    except KeyError:
+        dir_root = os.path.expanduser('~/kerchunk_refs')
+        os.environ['KERCHUNK_REF_DIR'] = dir_root
+        logger.warning(f"kerchunk reference files will be saved in {dir_root}. To specify a different location, set environment variable KERCHUNK_REF_DIR. E.g., in bash: 'export KERCHUNK_REF_DIR=~/data/kerchunk_refs'")
+    json_dir = pathlib.Path(dir_root) / pathlib.Path(filepath).parents[0]
+    json_dir.mkdir(parents=True, exist_ok=True)
+    return json_dir
 
 
 def kerchunk_grib(grib_filename):
@@ -24,15 +54,8 @@ def kerchunk_grib(grib_filename):
     # File system to write to: currently local (even if from AWS).
     fs_write = fsspec.filesystem('')
     
-    # Create directory to save reference files to.
-    try:
-        dir_root = os.path.expanduser(os.environ['KERCHUNK_REF_DIR'])
-    except KeyError:
-        dir_root = os.path.expanduser('~/kerchunk_refs')
-        os.environ['KERCHUNK_REF_DIR'] = dir_root
-        logger.warning(f"kerchunk reference files will be saved in {dir_root}. To specify a different location, set environment variable KERCHUNK_REF_DIR. E.g., in bash: 'export KERCHUNK_REF_DIR=~/data/kerchunk_refs'")
-    json_dir = pathlib.Path(dir_root) / pathlib.Path(grib_filename).parents[0]
-    json_dir.mkdir(parents=True, exist_ok=True)
+    # Create/get directory to save reference files to.
+    json_dir = create_get_json_dir(grib_filename)
     
     # Get file name root for creating json file names.
     # Just the filename with out the ".grib2" suffix.
@@ -56,6 +79,7 @@ def kerchunk_grib(grib_filename):
     existing_refs = fs_write.glob(str(json_dir / json_name_root) 
                                   + '_message*.json')
     if len(existing_refs) < len(var_filter['cfVarName']):
+        logger.info(f'creating kerchunk reference files')
         # Create the reference files, and keep a list of their names.
         out = scan_grib('s3://' + grib_filename, 
                         storage_options=storage_opts, 
@@ -69,8 +93,56 @@ def kerchunk_grib(grib_filename):
             with fs_write.open(out_file_name, "w") as f: 
                 f.write(ujson.dumps(message)) #write to file 
     else:
+        logger.info(f'kerchunk reference files already exist: skipping creation.')
         ref_filename_list = existing_refs
     
     # Return the reference file name list.
     return ref_filename_list
     
+
+def kerchunk_nc(nc_filename, file_format):
+    """
+    """
+    logger.info('getting kerchunk reference file')
+    # File system to write to: currently local (even if from AWS).
+    fs_write = fsspec.filesystem('')
+    
+    # Create/get directory to save reference files to.
+    json_dir = create_get_json_dir(nc_filename)
+    
+    # Get file name root for creating json file names.
+    # Just the filename with out the ".nc" suffix.
+    json_name_root = pathlib.Path(nc_filename).stem
+    
+    # Create the output file name.
+    ref_file_name = f'{json_dir / json_name_root}.json'
+
+    # Check if the reference file already exists, and create it if not.
+    if fs_write.exists(ref_file_name):
+        logger.info(f'kerchunk reference file {ref_file_name} already exists: skipping creation.')
+    else:
+        logger.info(f'creating kerchunk reference file {ref_file_name}')
+        if file_format == 'nc3_kerchunk':
+            storage_opts = {'anon': True, 'skip_instance_cache': True}
+            nc3_chunks = NetCDF3ToZarr(f"s3://{nc_filename}", 
+                                       storage_opts, 
+                                       inline_threshold=300)
+            with fs_write.open(ref_file_name, 'wb') as f:
+                f.write(ujson.dumps(nc3_chunks.translate()).encode())
+            logger.info('NetCDF3 kerchunk reference file created successfully')
+        elif file_format == 'nc4_kerchunk':
+            storage_opts = dict(mode='rb', anon=True, 
+                                default_fill_cache=False, 
+                                default_cache_type='first')
+            h5_chunks = SingleHdf5ToZarr(f"s3://{nc_filename}", 
+                                         storage_options=storage_opts, 
+                                         inline_threshold=300)
+            with fs_write.open(ref_file_name, 'wb') as f:
+                f.write(ujson.dumps(h5_chunks.translate()).encode())
+            logger.info('NetCDF4/HDF5 kerchunk reference file created successfully')
+        else:
+            logger.warning(f'File format {file_format} not supported for kerchunk netCDF reference creation.\n' +
+                           f'Supported formats are: nc3_kerchunk, nc4_kerchunk')
+
+    # Return the reference file name.
+    return ref_file_name

@@ -92,7 +92,7 @@ class GridAnalysisTask(AnalysisTask):
             logger.info(f'[{self.filename[0]}  ...  {self.filename[-1]}]')
         else:
             logger.info(f'opening file {self.filename}')
-        return store.open_file(self.filename, format=self.file_format)
+        return store.open_file(self.filename, file_format=self.file_format)
 
     def get_subset(self, ds:xarray.Dataset) -> pandas.DataFrame:
         """Subset this task's dataset and return a data frame.

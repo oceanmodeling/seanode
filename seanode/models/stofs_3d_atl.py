@@ -68,7 +68,7 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
                 FieldSource('noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.{yyyymmdd}/stofs_3d_atl.t{hh}z.fields.out2d_{file_hour}.nc',
                             [{'varname_out':'cwl', 'varname_file':'elevation', 'datum':'xGEOID20B'}],
                             {'latitude':'SCHISM_hgrid_node_y', 'longitude':'SCHISM_hgrid_node_x', 'time':'time'},
-                            FileGeometry.MESH, 'nc')
+                            FileGeometry.MESH, 'nc4_kerchunk')
             ]
         },
         'v1.1':{
@@ -89,7 +89,7 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
                 FieldSource('noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.{yyyymmdd}/stofs_3d_atl.t{hh}z.fields.out2d_{file_hour}.nc',
                             [{'varname_out':'cwl', 'varname_file':'elevation', 'datum':'xGEOID20B'}],
                             {'latitude':'SCHISM_hgrid_node_y', 'longitude':'SCHISM_hgrid_node_x', 'time':'time'},
-                            FileGeometry.MESH, 'nc')
+                            FileGeometry.MESH, 'nc4_kerchunk')
             ]
         }
     }
@@ -169,7 +169,8 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
                 forecast_type
             )
         else:
-            raise ValueError("geometry must be FileGeometry.POINTS or FileGeometry.MESH.")
+            logger.error("geometry must be FileGeometry.POINTS or FileGeometry.MESH.")
+            return []
         
     def _get_point_analysis_tasks(
         self, 

@@ -18,13 +18,17 @@ open_file
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from typing import List
-import datetime
 import s3fs
 import fsspec
 import xarray
-import ujson
 import zarr
 from kerchunk.combine import MultiZarrToZarr
+from seanode.kerchunker import kerchunk_nc
+import logging
+import traceback
+
+
+logger = logging.getLogger(__name__)
 
 
 class DataStore(ABC):
@@ -48,12 +52,12 @@ class AWSDataStore(DataStore):
 
     Methods
     -------
-    open_file(fullpath, format)
-        Opens a file (at fullpath, having a given format) from the data store.
+    open_file(fullpath, file_format)
+        Opens a file (at fullpath, having a given file_format) from the data store.
         
     """
 
-    def open_file(self, fullpath: str | list, format:str = "nc") -> xarray.Dataset:
+    def open_file(self, fullpath: str | list, file_format: str = "nc") -> xarray.Dataset:
         """Opens a file and returns a dataset.
 
         Note grib files are read with filters applied to the vertical levels,
@@ -66,7 +70,7 @@ class AWSDataStore(DataStore):
             but not including the "s3://" prependix.
             For kerchunk file formats, this can be a list of 
             json reference files.
-        format
+        file_format
             The format of the file, e.g., "nc" or "grib2".
 
         Returns
@@ -75,14 +79,14 @@ class AWSDataStore(DataStore):
             containing data in the given file.
             
         """
-        if format == "nc":
+        if file_format == 'nc':
             filesystem = s3fs.S3FileSystem(anon=True)
             url = f"s3://{fullpath}"
             ds = xarray.open_dataset(filesystem.open(url, 'rb'),
                                      drop_variables=['nvel'])
-            return ds 
-            
-        elif format in ['grib', 'grib2']:
+            return ds   
+
+        elif file_format in ['grib', 'grib2']:
             # Cannot open grib files direct from a remote filesystem,
             # so we have to cache locally. Method from:
             # https://stackoverflow.com/questions/66229140/xarray-read-remote-grib-file-on-s3-using-cfgrib
@@ -109,8 +113,8 @@ class AWSDataStore(DataStore):
                 decode_timedelta=True
             ).drop_dims('heightAboveGround', errors='ignore')
             return xarray.merge([ds_wind, ds_surface])
-            
-        elif format in ['kerchunk']:
+
+        elif file_format in ['grib_kerchunk']:
             # Combine individual references into single consolidated reference
             # Note some of these options are hard-coded for GFS. 
             # Might need to change if additional kerchunk datasets are added.
@@ -137,9 +141,28 @@ class AWSDataStore(DataStore):
                                      decode_timedelta=True)
             return ds.drop_vars(['step', 'surface', 'heightAboveGround'], 
                                 errors='ignore')
+
+        elif file_format in ['nc3_kerchunk', 'nc4_kerchunk']:
+            json_ref = kerchunk_nc(fullpath, file_format)
+            fs = fsspec.filesystem(
+                "reference", 
+                fo=json_ref, 
+                remote_protocol='s3',
+                remote_options={'anon':True,'skip_instance_cache':True},
+                target_options={'skip_instance_cache': True}
+            )
+            store = zarr.storage.FsspecStore(fs)
+            ds = xarray.open_dataset(
+                store, 
+                engine="zarr", 
+                backend_kwargs=dict(consolidated=False), 
+                chunks={'time':1}, 
+                decode_timedelta=True
+            )
+            return ds
             
         else:
-            raise ValueError(f'File format {format} not supported.')
+            raise ValueError(f'File format {file_format} not supported.')
             return None
         
     

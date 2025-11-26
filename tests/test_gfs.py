@@ -62,7 +62,7 @@ def test_get_analysis_task_nowcast_current_version():
     # Test timeslice.
     assert atn[0].timeslice is None
     # Test file format.
-    assert atn[0].file_format == 'kerchunk'
+    assert atn[0].file_format == 'grib_kerchunk'
     return None
 
 
@@ -104,7 +104,7 @@ def test_get_analysis_task_forecast_current_version():
     # Test timeslice.
     assert atf[0].timeslice is None
     # Test file format.
-    assert atf[0].file_format == 'kerchunk'
+    assert atf[0].file_format == 'grib_kerchunk'
     return None
 
 

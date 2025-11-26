@@ -57,7 +57,7 @@ class HRRRTaskCreator(ModelTaskCreator):
                              {'varname_out':'u10', 'varname_file':'uwind', 'datum':None},
                              {'varname_out':'v10', 'varname_file':'vwind', 'datum':None}],
                             {'time':'time','latitude':'lat','longitude':'lon'},
-                            FileGeometry.MESH, 'nc')
+                            FileGeometry.MESH, 'nc3_kerchunk'),
             ]
         }
     }

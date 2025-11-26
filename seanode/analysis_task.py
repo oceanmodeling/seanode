@@ -27,6 +27,7 @@ import numpy
 from coastalmodeling_vdatum import vdatum
 from seanode.data_stores import DataStore
 import logging
+import traceback
 
 
 logger = logging.getLogger(__name__)
@@ -115,6 +116,7 @@ class AnalysisTask:
             standardized, but the data variable names have not.
             
         """
+        logger.info('subsetting dataset')
         # Rename coordinates.
         ds_sub = ds.rename({v:k for k,v in self.coords.items()})
         # Get list of variables and coordinates to keep.
@@ -156,6 +158,7 @@ class AnalysisTask:
         None
         
         """
+        logger.info('postprocessing data frame')
         # Rename columns.
         col_name_mapper = {vdict['varname_file']:vdict['varname_out'] 
                            for vdict in self.varlist}
@@ -211,8 +214,12 @@ class AnalysisTask:
             
         """
         with self.open_dataset(store) as ds:
-            self.dataframe = self.get_subset(ds)
-        self.postprocess(output_datum)
+            try:
+                self.dataframe = self.get_subset(ds)
+                self.postprocess(output_datum)
+            except Exception as e:
+                logger.warning(traceback.format_exc())
+                ds.close()
         return self.dataframe
 
 
@@ -339,17 +346,15 @@ def extract_stations_by_nos_id(
 
     for nos_id in station_id_list:
 
-        # Find the model station names that match this station ID.
-        # Note these will usually be NOS ID matches, but don't
-        # actually have to be.
+        # Find the model station names that match this NOS ID.
         obs_name_in_model = [nos_id in nm.decode('utf-8') 
                              for nm in ds.station_name.data]
 
         # Check that only one model station matches this ID.
         if numpy.sum(obs_name_in_model) > 1:
-            logger.warning(f"More than one model station matches station ID {nos_id}: skipping")
+            logger.warning(f"More than one model station matches NOS ID {nos_id}")
         elif numpy.sum(obs_name_in_model) == 0:
-            logger.warning(f"No model station matches for station ID {nos_id}")
+            logger.warning(f"No model station matches for NOS ID {nos_id}")
         else:   
             # If available, concatenate the data with other stations.
             station_df = ds.loc[dict(station=obs_name_in_model)]\
@@ -364,7 +369,7 @@ def extract_stations_by_nos_id(
                      sort=False
                 )
             except:
-                logger.warning(f"Cannot concatenate station data frame for station ID {nos_id}: Skipping.")
+                logger.warning(f"Cannot concatenate station data frame for NOS ID {nos_id}: Skipping.")
                 continue
 
     return result

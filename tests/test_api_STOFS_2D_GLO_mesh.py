@@ -31,3 +31,6 @@ df_forecast = get_surge_model_at_stations(
 )
 
 assert df_forecast.shape == (543,3), "df_forecast should have shape (543, 3)."
+
+print('---------- df_forecast ----------')
+print(df_forecast)

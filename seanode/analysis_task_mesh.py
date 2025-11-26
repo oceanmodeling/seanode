@@ -96,7 +96,7 @@ class MeshAnalysisTask(AnalysisTask):
     def open_dataset(self, store: DataStore) -> xarray.Dataset:
         """Open this task's dataset from given data store."""
         logger.info(f'opening file {self.filename}')
-        ds = store.open_file(self.filename, format=self.file_format)
+        ds = store.open_file(self.filename, file_format=self.file_format)
         logger.debug('file opened')
         logger.debug(ds)
         return ds
@@ -121,6 +121,7 @@ class MeshAnalysisTask(AnalysisTask):
             
         """
         logger.info('subsetting mesh dataset')
+        logger.debug('subsetting mesh dataset')
         # Rename coordinates and convert lat/lon to regular variables.
         logger.debug('renaming variables')
         ds_sub = ds.rename({v:k for k,v in self.coords.items()})
@@ -182,8 +183,9 @@ class MeshAnalysisTask(AnalysisTask):
         try:
             ds_sub_test = ds_sub.isel({d:dists_inds[d] for d in ds_sub['longitude'].dims})
             test = ds_sub_test.to_dataframe()
+            del test
         except:
-            logger.debug('Manually loading dataset before station subsetting.')
+            logger.warning('manually loading dataset before station subsetting: could be slow')
             ds_sub.load()
             ds_sub_test = ds_sub.isel({d:dists_inds[d] for d in ds_sub['longitude'].dims})
         ds_sub = ds_sub_test
@@ -201,7 +203,7 @@ class MeshAnalysisTask(AnalysisTask):
         ds_sub = ds_sub.sum(dim='k')
 
         # Convert dataset to data frame.
-        logger.debug('converting to data frame')
+        logger.info('converting to data frame')
         df = ds_sub.to_dataframe().reset_index().set_index(['station','time'])
         
         return df

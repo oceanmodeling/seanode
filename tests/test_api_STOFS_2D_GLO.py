@@ -22,8 +22,6 @@ df_forecast = get_surge_model_at_stations(
     'AWS'
 )
 
-print(df_forecast)
-
 df_nowcast = get_surge_model_at_stations(
     'STOFS_2D_GLO',
     ['cwl_bias_corrected'], 
@@ -36,7 +34,10 @@ df_nowcast = get_surge_model_at_stations(
     'AWS'
 )
 
-print(df_nowcast)
-
 assert df_forecast.shape == (3602,6), "df_forecast should have shape (3602, 6)."
 assert df_nowcast.shape == (362, 4), "df_nowcast should have shape (362, 4)."
+
+print('---------- df_forecast ----------')
+print(df_forecast)
+print('---------- df_nowcast ----------')
+print(df_nowcast)
