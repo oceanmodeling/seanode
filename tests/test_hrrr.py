@@ -56,7 +56,7 @@ def test_get_analysis_task_nowcast_current_version():
     assert atn[1].timeslice == (datetime.datetime(2024, 12, 1, 12, 0), 
                                 datetime.datetime(2024, 12, 2, 12, 0))
     # Test file format.
-    assert atn[0].file_format == 'nc'
+    assert atn[0].file_format == 'nc3_kerchunk'
     return None
 
 
@@ -84,7 +84,7 @@ def test_get_analysis_task_forecast_current_version():
     # Test timeslice.
     assert atf[0].timeslice == (datetime.datetime(2024, 12, 1, 12, 0), None)
     # Test file format.
-    assert atf[0].file_format == 'nc'
+    assert atf[0].file_format == 'nc3_kerchunk'
     return None
 
 

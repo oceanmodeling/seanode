@@ -169,7 +169,8 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
                 forecast_type
             )
         else:
-            raise ValueError("geometry must be FileGeometry.POINTS or FileGeometry.MESH.")
+            logger.error("geometry must be FileGeometry.POINTS or FileGeometry.MESH.")
+            return []
         
     def _get_point_analysis_tasks(
         self, 
