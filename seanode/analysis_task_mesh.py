@@ -96,7 +96,7 @@ class MeshAnalysisTask(AnalysisTask):
     def open_dataset(self, store: DataStore) -> xarray.Dataset:
         """Open this task's dataset from given data store."""
         logger.info(f'opening file {self.filename}')
-        ds = store.open_file(self.filename, format=self.file_format)
+        ds = store.open_file(self.filename, file_format=self.file_format)
         logger.debug('file opened')
         logger.debug(ds)
         return ds

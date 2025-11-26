@@ -30,9 +30,6 @@ df_forecast = get_surge_model_at_stations(
     'AWS'
 )
 
-print(df_forecast)
-
-
 df_nowcast = get_surge_model_at_stations(
     'HRRR',
     ['u10', 'v10', 'ps'],
@@ -45,7 +42,10 @@ df_nowcast = get_surge_model_at_stations(
     'AWS'
 )
 
-print(df_nowcast)
-
 assert df_forecast.shape == (147,5), "df_forecast should have shape (147,5)."
 assert df_nowcast.shape == (129,5), "df_nowcast should have shape (129,5)."
+
+print('---------- df_forecast ----------')
+print(df_forecast)
+print('---------- df_nowcast ----------')
+print(df_nowcast)

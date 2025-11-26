@@ -12,8 +12,10 @@ import s3fs
 import ujson
 from kerchunk.grib2 import scan_grib
 from kerchunk.netCDF3 import NetCDF3ToZarr
+from kerchunk.hdf import SingleHdf5ToZarr
 import dask.bag
 import logging
+import traceback
 
 
 logger = logging.getLogger(__name__)
@@ -77,6 +79,7 @@ def kerchunk_grib(grib_filename):
     existing_refs = fs_write.glob(str(json_dir / json_name_root) 
                                   + '_message*.json')
     if len(existing_refs) < len(var_filter['cfVarName']):
+        logger.info(f'creating kerchunk reference files')
         # Create the reference files, and keep a list of their names.
         out = scan_grib('s3://' + grib_filename, 
                         storage_options=storage_opts, 
@@ -90,13 +93,14 @@ def kerchunk_grib(grib_filename):
             with fs_write.open(out_file_name, "w") as f: 
                 f.write(ujson.dumps(message)) #write to file 
     else:
+        logger.info(f'kerchunk reference files already exist: skipping creation.')
         ref_filename_list = existing_refs
     
     # Return the reference file name list.
     return ref_filename_list
     
 
-def kerchunk_nc(nc_filename):
+def kerchunk_nc(nc_filename, file_format):
     """
     """
     logger.info('getting kerchunk reference file')
@@ -118,13 +122,27 @@ def kerchunk_nc(nc_filename):
         logger.info(f'kerchunk reference file {ref_file_name} already exists: skipping creation.')
     else:
         logger.info(f'creating kerchunk reference file {ref_file_name}')
-        # Create the kerchunk reference object.
-        storage_opts = {'anon': True, 'skip_instance_cache': True}
-        nc3_chunks = NetCDF3ToZarr(f"s3://{nc_filename}", 
-                                   storage_opts, 
-                                   inline_threshold=300)
-        with fs_write.open(ref_file_name, 'wb') as f:
-            f.write(ujson.dumps(nc3_chunks.translate()).encode())
+        if file_format == 'nc3_kerchunk':
+            storage_opts = {'anon': True, 'skip_instance_cache': True}
+            nc3_chunks = NetCDF3ToZarr(f"s3://{nc_filename}", 
+                                       storage_opts, 
+                                       inline_threshold=300)
+            with fs_write.open(ref_file_name, 'wb') as f:
+                f.write(ujson.dumps(nc3_chunks.translate()).encode())
+            logger.info('NetCDF3 kerchunk reference file created successfully')
+        elif file_format == 'nc4_kerchunk':
+            storage_opts = dict(mode='rb', anon=True, 
+                                default_fill_cache=False, 
+                                default_cache_type='first')
+            h5_chunks = SingleHdf5ToZarr(f"s3://{nc_filename}", 
+                                         storage_options=storage_opts, 
+                                         inline_threshold=300)
+            with fs_write.open(ref_file_name, 'wb') as f:
+                f.write(ujson.dumps(h5_chunks.translate()).encode())
+            logger.info('NetCDF4/HDF5 kerchunk reference file created successfully')
+        else:
+            logger.warning(f'File format {file_format} not supported for kerchunk netCDF reference creation.\n' +
+                           f'Supported formats are: nc3_kerchunk, nc4_kerchunk')
 
     # Return the reference file name.
     return ref_file_name

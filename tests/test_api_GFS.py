@@ -30,8 +30,6 @@ df_forecast = get_surge_model_at_stations(
     'AWS'
 )
 
-print(df_forecast)
-
 df_nowcast = get_surge_model_at_stations(
     'GFS',
     ['u10', 'v10', 'ps'],
@@ -44,7 +42,10 @@ df_nowcast = get_surge_model_at_stations(
     'AWS'
 )
 
-print(df_nowcast)
-
 assert df_forecast.shape[0] == 423, "df_forecast should have 423 rows."
 assert df_nowcast.shape[0] == 129, "df_nowcast should have 129 rows."
+
+print('---------- df_forecast ----------')
+print(df_forecast)
+print('---------- df_nowcast ----------')
+print(df_nowcast)

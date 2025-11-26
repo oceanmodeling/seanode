@@ -60,7 +60,7 @@ class GFSTaskCreator(ModelTaskCreator):
                              {'varname_out':'v10', 'varname_file':'v10', 'datum':None}],
                             {'time':'valid_time', 'init_time':'time', 
                              'latitude':'latitude','longitude':'longitude'},
-                             FileGeometry.GRID, 'kerchunk'),
+                             FileGeometry.GRID, 'grib_kerchunk'),
             ]
         }
     }
@@ -157,8 +157,6 @@ class GFSTaskCreator(ModelTaskCreator):
                     for idt, dt in enumerate(init_dates):
                         for lt in lead_times[idt]:
                             # Get name of the grib file.
-                            # Note we hard-code the "grib2" suffix so it
-                            # doesn't look for "kerchunk" file suffixs.
                             filename = fs.get_filename(dt, {'forecast_lead':lt})
                             # Get reference files for this grib file.
                             ltrefs = dask.delayed(kerchunk_grib)(filename)

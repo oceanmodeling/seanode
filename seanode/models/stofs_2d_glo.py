@@ -75,20 +75,20 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
                 FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.nc',
                             [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}],
                             {'latitude':'y', 'longitude':'x', 'time':'time'},
-                            FileGeometry.MESH, 'nc'),
+                            FileGeometry.MESH, 'nc4_kerchunk'),
                 FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.htp.nc',
                             [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'LMSL'}],
                             {'latitude':'y', 'longitude':'x', 'time':'time'},
-                            FileGeometry.MESH, 'nc'),
+                            FileGeometry.MESH, 'nc4_kerchunk'),
                 FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.swl.nc',
                             [{'varname_out':'swl', 'varname_file':'zeta', 'datum':None}],
                             {'latitude':'y', 'longitude':'x', 'time':'time'},
-                            FileGeometry.MESH, 'nc'),
+                            FileGeometry.MESH, 'nc4_kerchunk'),
                 FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.vel.nc',
                             [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
                              {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}],
                             {'latitude':'y', 'longitude':'x', 'time':'time'},
-                            FileGeometry.MESH, 'nc')
+                            FileGeometry.MESH, 'nc4_kerchunk')
             ]
         },
         'v2.0':{
@@ -115,20 +115,20 @@ class STOFS2DGloTaskCreator(ModelTaskCreator):
                 FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.nc',
                             [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}],
                             {'latitude':'y', 'longitude':'x', 'time':'time'},
-                            FileGeometry.MESH, 'nc'),
+                            FileGeometry.MESH, 'nc4_kerchunk'),
                 FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.htp.nc',
                             [{'varname_out':'htp', 'varname_file':'zeta', 'datum':'LMSL'}],
                             {'latitude':'y', 'longitude':'x', 'time':'time'},
-                            FileGeometry.MESH, 'nc'),
+                            FileGeometry.MESH, 'nc4_kerchunk'),
                 FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.swl.nc',
                             [{'varname_out':'swl', 'varname_file':'zeta', 'datum':None}],
                             {'latitude':'y', 'longitude':'x', 'time':'time'},
-                            FileGeometry.MESH, 'nc'),
+                            FileGeometry.MESH, 'nc4_kerchunk'),
                 FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.vel.nc',
                             [{'varname_out':'u_vel', 'varname_file':'u-vel', 'datum':None},
                              {'varname_out':'v_vel', 'varname_file':'v-vel', 'datum':None}],
                             {'latitude':'y', 'longitude':'x', 'time':'time'},
-                            FileGeometry.MESH, 'nc')
+                            FileGeometry.MESH, 'nc4_kerchunk')
             ]
         }
     }
