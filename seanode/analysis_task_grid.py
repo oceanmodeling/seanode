@@ -164,6 +164,22 @@ class GridAnalysisTask(AnalysisTask):
             method='nearest'
         ).to_dataframe().reset_index().set_index(['station','time'])
         
+        # Rename columns.
+        col_name_mapper = {vdict['varname_file']:vdict['varname_out'] 
+                           for vdict in self.varlist}
+        df = df.rename(columns=col_name_mapper)
+        
+        # Add metadata.
+        df.attrs['ColumnMetaData'] = {}
+        for vdict in self.varlist:
+            vmd = {}
+            if vdict['varname_file'] in ds_sub:
+                if ds_sub[vdict['varname_file']].attrs:
+                    vmd.update(ds_sub[vdict['varname_file']].attrs)
+            if 'datum' in vdict and vdict['datum'] is not None:
+                vmd['datum'] = vdict['datum']
+            df.attrs['ColumnMetaData'][vdict['varname_out']] = vmd
+        #
         return df
 
     
