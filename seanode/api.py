@@ -20,6 +20,10 @@ import datetime
 from typing import List, Iterable
 from seanode import request_options
 from seanode.request import SurgeModelRequest
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_surge_model_at_stations(
@@ -90,6 +94,13 @@ def get_surge_model_at_stations(
         req_model = request_options.ModelOptions[model]
     else:
         raise ValueError(f'model {model} not recognized. Try one of {model_opts}.')
+
+    if isinstance(stations, pandas.DataFrame):
+        if stations.empty:
+            raise ValueError('stations data frame is empty.')
+    else:
+        if len(stations) == 0:
+            raise ValueError(f'stations {type(stations)} is empty.')
         
     if forecast_type.lower() in ['forecast']:
         req_forecast_type = request_options.ForecastType.FORECAST
@@ -106,10 +117,31 @@ def get_surge_model_at_stations(
 
     if file_geometry.lower() in ['points']:
         req_file_geometry = request_options.FileGeometry.POINTS
+        # points requests needs station IDs/names only.
+        if isinstance(stations, pandas.DataFrame):
+            if 'station' not in stations.columns:
+                raise ValueError('stations data frame must have a "station" column for points file geometry.')
+            req_stations = stations['station']
+        else:
+            req_stations = stations
     elif file_geometry.lower() in ['mesh']:
         req_file_geometry = request_options.FileGeometry.MESH
+        # mesh requests need full data frame with latitude/longitude columns.
+        if isinstance(stations, pandas.DataFrame):
+            if 'latitude' not in stations.columns or 'longitude' not in stations.columns:
+                raise ValueError('stations data frame must have "latitude" and "longitude" columns for mesh file geometry.')
+            req_stations = stations
+        else:
+            raise ValueError('stations must be a pandas DataFrame for mesh file geometry.')
     elif file_geometry.lower() in ['grid']:
         req_file_geometry = request_options.FileGeometry.GRID
+        # grid requests need full data frame with latitude/longitude columns.
+        if isinstance(stations, pandas.DataFrame):
+            if 'latitude' not in stations.columns or 'longitude' not in stations.columns:
+                raise ValueError('stations data frame must have "latitude" and "longitude" columns for grid file geometry.')
+            req_stations = stations
+        else:
+            raise ValueError('stations must be a pandas DataFrame for grid file geometry.')
     else:
         fg_opts = [fg.name for fg in list(request_options.FileGeometry)]
         raise ValueError(f'file geometry {file_geometry} not recognized. Try one of {fg_opts}.')
@@ -119,21 +151,31 @@ def get_surge_model_at_stations(
     else:
         ds_opts = [ds.name for ds in list(request_options.DataStoreOptions)]
         raise ValueError(f'data store {data_store} not recognized. Try one of {ds_opts}.')
+    
+    allowed_datums = [
+        'xgeoid20b','navd88','mllw','mlw','mhhw','mhw','lmsl','igld85','lwd'
+    ]
+    if output_datum.lower() == 'msl':
+        output_datum = 'lmsl'
+        logger.warning('Amending output_datum from msl to lmsl for compatibility.')
+    if output_datum.lower() not in allowed_datums:
+        raise ValueError(f'output datum {output_datum} not recognized. Try one of {allowed_datums},',
+                         ' or see for a full list in the coastalmodeling_vdatum package.')
 
     if req_end_date < req_start_date:
         raise ValueError('end_date must be later than or equal to start_date.')
+    if req_start_date > datetime.datetime.now():
+        raise ValueError('start_date cannot be in the future.')
     # Note that dates are also defined/checked in the ForecastType section above.
 
     # TODO:
-    # Add checks for variables?
-    # Add check for station data frame formatting?
     # Add date conversions (numpy/pandas to datetime)?
 
     # Create the request.
     request = SurgeModelRequest(
         req_model,
         variables,
-        stations,
+        req_stations,
         req_start_date,
         req_end_date,
         req_forecast_type,

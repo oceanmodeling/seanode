@@ -177,7 +177,7 @@ class AnalysisTask:
         """
         logger.info('postprocessing data frame')
         # Datum conversion.
-        if output_datum is not None:
+        if (output_datum is not None) and (not self.dataframe.empty):
             for vdict in self.varlist:
                 if vdict['datum'] is not None:
                     _, _, z_conv = vdatum.convert(
