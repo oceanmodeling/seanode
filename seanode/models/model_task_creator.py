@@ -165,9 +165,8 @@ class ModelTaskCreator:
                 lr = 'present'
             else:
                 lr = lr.strftime("%Y-%m-%d %H:%M")
-            logger.warning(f'No FieldSource available for variable {var} in version {version} {geometry} files.\n',
-                           'Try a different variable, geometry, or dates.\n',
-                           'Version {version} runs from {fr} to {lr}.')
+            logger.warning(f'No FieldSource available for variable {var} in {geometry} files for version {version} ({fr} to {lr}).\n' + 
+                           'Try a different variable, geometry, or dates.')
             return result
         else:
             return result
