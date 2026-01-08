@@ -1,3 +1,22 @@
+"""Define tests for API validity checks.
+
+The following tests are included:
+test_bad_model: Test that an invalid model raises ValueError.
+test_empty_stations_df: Test that an empty stations DataFrame raises ValueError.
+test_empty_stations_series: Test that an empty stations Series raises ValueError.
+test_bad_forecast_type: Test that an invalid forecast type raises ValueError.
+test_bad_geometry: Test that an invalid file geometry raises ValueError.
+test_points_missing_stations: Test that missing station column for points geometry raises ValueError.
+test_mesh_missing_latlon: Test that missing latitude/longitude columns for mesh geometry raises ValueError.
+test_grid_missing_latlon: Test that missing latitude/longitude columns for grid geometry raises ValueError.
+test_bad_data_store: Test that an invalid data store raises ValueError.
+test_bad_datum: Test that an invalid datum raises ValueError.
+test_end_before_start: Test that end date before start date raises ValueError.
+test_future_start_date: Test that a future start date raises ValueError.
+
+"""
+
+
 import pathlib  
 import sys
 sys.path.append(str(pathlib.Path(__file__).parent.parent.absolute()))
