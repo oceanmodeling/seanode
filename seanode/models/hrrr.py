@@ -37,10 +37,6 @@ class HRRRTaskCreator(ModelTaskCreator):
 
     Methods
     -------
-    get_versions_by_date
-    get_field_source
-    get_init_time_forecast
-    get_init_times_nowcast
     get_analysis_tasks
     
     """

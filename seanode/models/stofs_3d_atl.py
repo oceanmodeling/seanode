@@ -37,10 +37,6 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
 
     Methods
     -------
-    get_versions_by_date
-    get_field_source
-    get_init_time_forecast
-    get_init_times_nowcast
     get_analysis_tasks
     _get_point_analysis_tasks
     _get_mesh_analysis_tasks
