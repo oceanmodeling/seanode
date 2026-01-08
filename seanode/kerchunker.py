@@ -8,14 +8,11 @@ import datetime as dt
 import pandas as pd
 import pathlib
 import fsspec
-import s3fs
 import ujson
 from kerchunk.grib2 import scan_grib
 from kerchunk.netCDF3 import NetCDF3ToZarr
 from kerchunk.hdf import SingleHdf5ToZarr
-import dask.bag
 import logging
-import traceback
 
 
 logger = logging.getLogger(__name__)
@@ -48,8 +45,21 @@ def create_get_json_dir(filepath: str) -> pathlib.Path:
     return json_dir
 
 
-def kerchunk_grib(grib_filename):
-    """
+def kerchunk_grib(grib_filename: str) -> list:
+    """Create and return list of kerchunk reference files for a GRIB file. 
+    
+    Skips creation if they already exist.
+
+    Parameters
+    ----------
+    grib_filename : str
+        Path to the GRIB file (can be a remote path, e.g., on S3).
+
+    Returns
+    -------
+    list of str
+        List of reference file names (JSON files) created or found for the GRIB file.
+    
     """
     # File system to write to: currently local (even if from AWS).
     fs_write = fsspec.filesystem('')
@@ -100,8 +110,25 @@ def kerchunk_grib(grib_filename):
     return ref_filename_list
     
 
-def kerchunk_nc(nc_filename, file_format):
-    """
+def kerchunk_nc(nc_filename: str, file_format: str) -> str:
+    """Create a kerchunk reference file for a NetCDF file.
+    
+    Skips creation if it already exists.
+
+    Parameters
+    ----------
+    nc_filename : str
+        Path to the NetCDF file (can be local or remote).
+    file_format : str
+        Format of the NetCDF file. Supported values are:
+            - 'nc3_kerchunk' for NetCDF3 files
+            - 'nc4_kerchunk' for NetCDF4 files
+
+    Returns
+    -------
+    str
+        Path to the created kerchunk reference file (JSON).
+
     """
     logger.info('getting kerchunk reference file')
     # File system to write to: currently local (even if from AWS).
@@ -141,8 +168,8 @@ def kerchunk_nc(nc_filename, file_format):
                 f.write(ujson.dumps(h5_chunks.translate()).encode())
             logger.info('NetCDF4/HDF5 kerchunk reference file created successfully')
         else:
-            logger.warning(f'File format {file_format} not supported for kerchunk netCDF reference creation.\n' +
-                           f'Supported formats are: nc3_kerchunk, nc4_kerchunk')
+            raise ValueError(f'File format {file_format} not supported for kerchunk netCDF reference creation.\n' +
+                             f'Supported formats are: nc3_kerchunk, nc4_kerchunk')
 
     # Return the reference file name.
     return ref_file_name

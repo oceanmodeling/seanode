@@ -121,7 +121,6 @@ class MeshAnalysisTask(AnalysisTask):
             
         """
         logger.info('subsetting mesh dataset')
-        logger.debug('subsetting mesh dataset')
         # Rename coordinates and convert lat/lon to regular variables.
         logger.debug('renaming variables')
         ds_sub = ds.rename({v:k for k,v in self.coords.items()})

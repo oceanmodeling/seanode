@@ -238,8 +238,9 @@ class AnalysisTask:
                 self.dataframe = self.get_subset(ds)
                 self.postprocess(output_datum)
             except Exception as e:
-                logger.warning(traceback.format_exc())
+                logger.warning(f"Exception occurred: {e}\n{traceback.format_exc()}")
                 ds.close()
+                self.dataframe = pandas.DataFrame()
         return self.dataframe
 
 

@@ -25,7 +25,6 @@ import zarr
 from kerchunk.combine import MultiZarrToZarr
 from seanode.kerchunker import kerchunk_nc
 import logging
-import traceback
 
 
 logger = logging.getLogger(__name__)
