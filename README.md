@@ -70,4 +70,18 @@ python seanode_cli.py models
 python seanode_cli.py catalog <model_name>
 ```
 
+You can define a `bash` (or other shell) alias to make these commands, and associated python environment, easier to work with. E.g., add the following to your `.bashrc` file:
+```
+alias seanode='<full_path_to_env_with_seanode_installed> <full_path_to/seanode_cli.py>'
+# E.g.,
+#alias seanode='/home/you/another_package/.venv/bin/python  /home/you/seanode/seanode/seanode_cli.py'
+```
+This can then be used like 
+```
+seanode models
+# prints models
+seanode catalog <model_name>
+# prints data catalog for <model_name>
+```
+
 
