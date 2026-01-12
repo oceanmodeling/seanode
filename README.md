@@ -57,3 +57,17 @@ The main function to use is `get_surge_model_at_stations(...)`:
 from seanode.api import get_surge_model_at_stations
 ```
 Examples of usage are given in `example_points_query.ipynb` and the scripts in directory `tests`.
+
+There is also a command line interface tool that can be used to list available models and data. This has two usage patterns:
+
+1. To list the available models:
+```
+python seanode_cli.py models
+```
+
+2. To list the data variables available for a particular model, and which dates they are available for:
+```
+python seanode_cli.py catalog <model_name>
+```
+
+
