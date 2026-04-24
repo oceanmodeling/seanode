@@ -155,12 +155,15 @@ def get_surge_model_at_stations(
     allowed_datums = [
         'xgeoid20b','navd88','mllw','mlw','mhhw','mhw','lmsl','igld85','lwd'
     ]
-    if output_datum.lower() == 'msl':
-        output_datum = 'lmsl'
-        logger.warning('Amending output_datum from msl to lmsl for compatibility.')
-    if output_datum.lower() not in allowed_datums:
-        raise ValueError(f'output datum {output_datum} not recognized. Try one of {allowed_datums},',
-                         ' or see for a full list in the coastalmodeling_vdatum package.')
+    if output_datum is None:
+        logger.warning('output_datum is None: no datum conversion will be performed.')
+    else:
+        if output_datum.lower() == 'msl':
+            output_datum = 'lmsl'
+            logger.warning('Amending output_datum from msl to lmsl for compatibility.')
+        if output_datum.lower() not in allowed_datums:
+            raise ValueError(f'output datum {output_datum} not recognized. Try one of {allowed_datums},',
+                            ' or see for a full list in the coastalmodeling_vdatum package.')
 
     if req_end_date < req_start_date:
         raise ValueError('end_date must be later than or equal to start_date.')

@@ -11,9 +11,14 @@ test_mesh_missing_latlon: Test that missing latitude/longitude columns for mesh 
 test_grid_missing_latlon: Test that missing latitude/longitude columns for grid geometry raises ValueError.
 test_bad_data_store: Test that an invalid data store raises ValueError.
 test_bad_datum: Test that an invalid datum raises ValueError.
+test_none_datum: Test that None datum raises a warning but does not raise ValueError.
 test_end_before_start: Test that end date before start date raises ValueError.
 test_future_start_date: Test that a future start date raises ValueError.
 
+To run all tests:
+    $ python test_api.py
+
+TODO: Modify to use pytest framework and fixtures for better test organization and reporting.
 """
 
 
@@ -26,6 +31,7 @@ from seanode.api import get_surge_model_at_stations
 import logging
 
 
+logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
@@ -235,6 +241,26 @@ def test_bad_datum():
     else:
         assert False, "Expected ValueError for bad datum."
 
+def test_none_datum():
+    try:
+        logger.info("-"*80)
+        logger.info("Testing None datum: expecting a warning but no exception.")
+        logger.info("Expected warning: 'output_datum is None: no datum conversion will be performed.'")
+        df = get_surge_model_at_stations(
+            model,
+            ['cwl_bias_corrected'],
+            stations,
+            start_date,
+            start_date + datetime.timedelta(hours=1),
+            forecast_type,
+            geometry,
+            None,
+            store
+        )
+        logger.info("Finished testing None datum: no exception raised, as expected.\n")
+    except Exception as e:
+        assert False, f"Expected logger warning but no exception for datum = None, but instead got: {e}"
+
 def test_end_before_start():
     try:
         df = get_surge_model_at_stations(
@@ -283,6 +309,7 @@ if __name__ == "__main__":
     test_grid_missing_latlon()
     test_bad_data_store()
     test_bad_datum()
+    test_none_datum()
     test_end_before_start()
     test_future_start_date()
     print("All tests passed.")
