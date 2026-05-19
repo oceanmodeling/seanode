@@ -12,6 +12,7 @@ from seanode.request_options import ModelOptions
 from seanode.models.model_task_creator import ModelTaskCreator
 from seanode.models.stofs_2d_glo import STOFS2DGloTaskCreator
 from seanode.models.stofs_3d_atl import STOFS3DAtlTaskCreator
+from seanode.models.stofs_3d_pac import STOFS3DPacTaskCreator
 from seanode.models.gfs import GFSTaskCreator
 from seanode.models.hrrr import HRRRTaskCreator
 
@@ -22,6 +23,8 @@ def get_model(model_name: ModelOptions) -> ModelTaskCreator:
         return STOFS2DGloTaskCreator()
     elif model_name == ModelOptions.STOFS_3D_ATL:
         return STOFS3DAtlTaskCreator()
+    elif model_name == ModelOptions.STOFS_3D_PAC:
+        return STOFS3DPacTaskCreator()
     elif model_name == ModelOptions.GFS:
         return GFSTaskCreator()
     elif model_name == ModelOptions.HRRR:

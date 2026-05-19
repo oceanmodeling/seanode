@@ -31,6 +31,7 @@ class ForecastType(Enum):
 class ModelOptions(Enum):
     STOFS_2D_GLO = 'stofs_2d_glo'
     STOFS_3D_ATL = 'stofs_3d_atl'
+    STOFS_3D_PAC = 'stofs_3d_pac'
     GFS = 'gfs'
     HRRR = 'hrrr'
 
