@@ -21,6 +21,7 @@ class FileGeometry(Enum):
     POINTS = 'points'
     MESH = 'mesh'
     GRID = 'grid'
+    ANY = 'any'
 
 
 class ForecastType(Enum):

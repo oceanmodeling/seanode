@@ -141,7 +141,7 @@ class ModelTaskCreator:
         var
             The variable of interest.
         geometry
-            One of FileGeometry POINTS, GRID, or MESH.
+            One of FileGeometry POINTS, GRID, MESH, or ANY.
 
         Returns
         -------
@@ -150,13 +150,15 @@ class ModelTaskCreator:
         """
         result = []
         for fs in self.data_catalog[version]['field_sources']:
-            if fs.file_geometry == geometry:
+            if (fs.file_geometry == geometry) or (geometry == FileGeometry.ANY):
                 if var in fs.get_vars():
                     result.append(fs)
 
         # Check if exactly 1 DataSource in result
         if len(result) > 1:
             logger.warning(f'More than one FieldSource available for variable {var} in version {version} {geometry} files.')
+            logger.warning('FieldSources will be queried in the following order:\n' + 
+                           '\n'.join(str(fs.filename_template) for fs in result))
             return result
         elif len(result) == 0:
             fr = self.data_catalog[version]['first_run'].strftime("%Y-%m-%d %H:%M")

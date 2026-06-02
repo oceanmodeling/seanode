@@ -40,7 +40,11 @@ data_catalog = {
             FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.points.cwl.noanomaly.nc',
                         [{'varname_out':'cwl', 'varname_file':'zeta', 'datum':'LMSL'}],
                         {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
-                        FileGeometry.POINTS, 'nc')
+                        FileGeometry.POINTS, 'nc'),
+            FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.fields.cwl.nc',
+                        [{'varname_out':'cwl', 'varname_file':'zeta', 'datum':'LMSL'}],
+                        {'latitude':'y', 'longitude':'x', 'time':'time'},
+                        FileGeometry.MESH, 'nc')
         ]
     },
     'v2.0':{
@@ -83,6 +87,10 @@ def test_get_field_source():
 
     fs_list = mtc.get_field_source('v2.0', 'cwl_bias_corrected', 'points')
     assert len(fs_list) == 0, f"Expected 0 FieldSource, got {len(fs_list)}"
+    
+    fs_list = mtc.get_field_source('v2.1', 'cwl', FileGeometry.ANY)
+    assert len(fs_list) == 2, f"Expected 2 FieldSource, got {len(fs_list)}"
+    assert fs_list[0].variables[0]['varname_out'] == 'cwl', "Variable name mismatch."
 
 def test_get_init_time_forecast():
     # Case 1: start_date falls exactly on a forecast initialization time (e.g., 12Z)
