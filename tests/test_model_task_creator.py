@@ -38,7 +38,7 @@ data_catalog = {
                         {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
                         FileGeometry.POINTS, 'nc'),
             FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.points.cwl.noanomaly.nc',
-                        [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}],
+                        [{'varname_out':'cwl', 'varname_file':'zeta', 'datum':'LMSL'}],
                         {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
                         FileGeometry.POINTS, 'nc')
         ]
@@ -48,7 +48,7 @@ data_catalog = {
         'last_run': datetime.datetime(2024, 5, 14, 6, 0),
         'field_sources':[
             FieldSource('noaa-gestofs-pds/stofs_2d_glo.{yyyymmdd}/stofs_2d_glo.t{hh}z.points.cwl.nc',
-                        [{'varname_out':'cwl_raw', 'varname_file':'zeta', 'datum':'LMSL'}],
+                        [{'varname_out':'cwl', 'varname_file':'zeta', 'datum':'LMSL'}],
                         {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
                         FileGeometry.POINTS, 'nc')
         ]

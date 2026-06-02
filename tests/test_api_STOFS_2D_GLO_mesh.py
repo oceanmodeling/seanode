@@ -20,7 +20,7 @@ df_stations = pd.DataFrame(
 
 df_forecast = get_surge_model_at_stations(
     'STOFS_2D_GLO',
-    ['cwl_raw'],
+    ['cwl'],
     df_stations,
     datetime.datetime(2024,12,1,12,0),
     None,

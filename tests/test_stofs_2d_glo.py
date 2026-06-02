@@ -82,7 +82,7 @@ def test_get_analysis_task_forecast_current_version():
 # Forecast, v2.0.
 def test_get_analysis_task_forecast_v2p0():
     atf = s2d.get_analysis_tasks(
-        ['cwl_raw', 'u_vel', 'v_vel'],
+        ['cwl', 'u_vel', 'v_vel'],
         df_stations,
         dt_v2p0,
         dt_v2p0,
@@ -93,7 +93,7 @@ def test_get_analysis_task_forecast_v2p0():
     assert atf[0].filename == 'noaa-gestofs-pds/stofs_2d_glo.20231201/stofs_2d_glo.t12z.points.cwl.nc'
     assert atf[1].filename == 'noaa-gestofs-pds/stofs_2d_glo.20231201/stofs_2d_glo.t12z.points.cwl.vel.nc'
     assert atf[0].coords == {'latitude': 'y', 'longitude': 'x', 'time': 'time', 'station_name': 'station_name'}
-    assert atf[0].varlist == [{'varname_out': 'cwl_raw', 'varname_file': 'zeta', 'datum': 'LMSL'}]
+    assert atf[0].varlist == [{'varname_out': 'cwl', 'varname_file': 'zeta', 'datum': 'LMSL'}]
     assert atf[1].varlist == [{'varname_out': 'u_vel', 'varname_file': 'u-vel', 'datum': None}, 
                               {'varname_out': 'v_vel', 'varname_file': 'v-vel', 'datum': None}]
     assert atf[0].timeslice == (datetime.datetime(2023, 12, 1, 12, 0), 
