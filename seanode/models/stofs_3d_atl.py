@@ -46,9 +46,30 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
     cycles = (12,)
     nowcast_period = 24
     data_catalog = {
+        'v3.1':{
+            'first_run': datetime.datetime(2026, 8, 17, 12, 0),
+            'last_run': None,
+            'field_sources':[
+                FieldSource('noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.{yyyymmdd}/stofs_3d_atl.t{hh}z.points.cwl.nc', 
+                            [{'varname_out':'cwl', 'varname_file':'zeta', 'datum':'MSL'}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.{yyyymmdd}/stofs_3d_atl.t{hh}z.points.cwl.temp.salt.vel.nc',
+                            [{'varname_out':'temperature', 'varname_file':'temperature', 'datum':None},
+                             {'varname_out':'salinity', 'varname_file':'salinity', 'datum':None},
+                             {'varname_out':'u_vel', 'varname_file':'u', 'datum':None},
+                             {'varname_out':'v_vel', 'varname_file':'v', 'datum':None}],
+                            {'latitude':'y', 'longitude':'x', 'time':'time', 'station_name':'station_name'},
+                            FileGeometry.POINTS, 'nc'),
+                FieldSource('noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.{yyyymmdd}/stofs_3d_atl.t{hh}z.fields.out2d_{file_hour}.nc',
+                            [{'varname_out':'cwl', 'varname_file':'elevation', 'datum':'xGEOID20B'}],
+                            {'latitude':'SCHISM_hgrid_node_y', 'longitude':'SCHISM_hgrid_node_x', 'time':'time'},
+                            FileGeometry.MESH, 'nc4_kerchunk')
+            ]
+        },
         'v2.1':{
             'first_run': datetime.datetime(2024, 5, 14, 12, 0),
-            'last_run': None,
+            'last_run': datetime.datetime(2026, 8, 16, 12, 0),
             'field_sources':[
                 FieldSource('noaa-nos-stofs3d-pds/STOFS-3D-Atl/stofs_3d_atl.{yyyymmdd}/stofs_3d_atl.t{hh}z.points.cwl.nc', 
                             [{'varname_out':'cwl', 'varname_file':'zeta', 'datum':'NAVD88'}],
@@ -240,7 +261,7 @@ class STOFS3DAtlTaskCreator(ModelTaskCreator):
                                 task_vars, 
                                 time_slices[idt], 
                                 stations,
-                                (version_name in ['v2.1'])
+                                (version_name in ['v2.1', 'v3.1'])
                             )
                         )
         return result

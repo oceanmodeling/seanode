@@ -311,7 +311,11 @@ class STOFS3DAtlAnalysisTask(AnalysisTask):
         logger.info(f'opening file {self.filename}')
         ds = store.open_file(self.filename)
 
-        if self.switch_xy:
+        # Check if x contains positive values (indicates longitude/latitude are swapped)
+        is_x_positive = ('x' in ds) and bool((ds.x.data > 0).any())
+
+        if is_x_positive:
+            display(ds.x.data)
             logger.warning('Switching x and y in STOFS3DAtlAnalysisTask')
             ds = ds.rename({'x':'actual_latitude', 'y':'actual_longitude'})
             ds = ds.rename({'actual_latitude':'y', 'actual_longitude':'x'})
