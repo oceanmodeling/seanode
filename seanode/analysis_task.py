@@ -315,7 +315,6 @@ class STOFS3DAtlAnalysisTask(AnalysisTask):
         is_x_positive = ('x' in ds) and bool((ds.x.data > 0).any())
 
         if is_x_positive:
-            display(ds.x.data)
             logger.warning('Switching x and y in STOFS3DAtlAnalysisTask')
             ds = ds.rename({'x':'actual_latitude', 'y':'actual_longitude'})
             ds = ds.rename({'actual_latitude':'y', 'actual_longitude':'x'})
